@@ -1567,40 +1567,111 @@
         let musicGainNode = null;
         let musicPlaying = false;
         let bgMusic = null;
+        let melodyTimer = null;
+
+        // ── 钢琴音色：多泛音 + 真实 ADSR ──
+        function pianoNote(freq, startTime, duration, velocity = 0.45) {
+            if (!audioCtx) return;
+            const t = startTime || audioCtx.currentTime;
+
+            const harmonics = [
+                { ratio: 1, amp: 1.0 },
+                { ratio: 2, amp: 0.4 },
+                { ratio: 3, amp: 0.18 },
+                { ratio: 4, amp: 0.08 },
+                { ratio: 5, amp: 0.04 },
+                { ratio: 6, amp: 0.02 },
+            ];
+
+            for (const h of harmonics) {
+                const osc = audioCtx.createOscillator();
+                osc.type = 'sine';
+                osc.frequency.value = freq * h.ratio;
+                osc.detune.value = (Math.random() - 0.5) * 5;
+
+                const gain = audioCtx.createGain();
+                const peak = h.amp * velocity * 0.13;
+
+                gain.gain.setValueAtTime(0, t);
+                gain.gain.linearRampToValueAtTime(peak, t + 0.006);
+                gain.gain.exponentialRampToValueAtTime(peak * 0.45, t + 0.12);
+                gain.gain.exponentialRampToValueAtTime(peak * 0.12, t + duration * 0.6);
+                gain.gain.exponentialRampToValueAtTime(0.001, t + duration);
+
+                osc.connect(gain);
+                gain.connect(musicGainNode || audioCtx.destination);
+                osc.start(t);
+                osc.stop(t + duration + 0.5);
+            }
+        }
+
+        // ── 混响 ──
+        function createReverb() {
+            const sampleRate = audioCtx.sampleRate;
+            const len = Math.floor(sampleRate * 2.2);
+            const impulse = audioCtx.createBuffer(2, len, sampleRate);
+            for (let ch = 0; ch < 2; ch++) {
+                const data = impulse.getChannelData(ch);
+                for (let i = 0; i < len; i++) {
+                    data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (sampleRate * 0.65));
+                }
+            }
+            const conv = audioCtx.createConvolver();
+            conv.buffer = impulse;
+            const dry = audioCtx.createGain();
+            dry.gain.value = 0.75;
+            const wet = audioCtx.createGain();
+            wet.gain.value = 0.28;
+            return { conv, dry, wet };
+        }
+
+        // ── 钢琴旋律（A 小调，约 60 BPM，38 秒循环） ──
+        function getMelody() {
+            const A2=110, C3=130.81, D3=146.83, F3=174.61, G3=196;
+            const A3=220, C4=261.63, D4=293.66, E4=329.63, F4=349.23, G4=392;
+            const B4=493.88, C5=523.25, D5=587.33, E5=659.25, F5=698.46;
+            // 和弦走向: Am | F | C | G | Am | F | C G | Am
+            return [
+                { f: A2, t: 0, d: 5.5 }, { f: A3, t: 0.4, d: 2.2 }, { f: E4, t: 2.3, d: 1.8 },
+                { f: F3, t: 4, d: 5.5 }, { f: A3, t: 4.4, d: 2.2 }, { f: F4, t: 6.3, d: 1.8 },
+                { f: C3, t: 8, d: 5.5 }, { f: C4, t: 8.3, d: 1.8 }, { f: G4, t: 10, d: 2 },
+                { f: G3, t: 12, d: 5.5 }, { f: B4, t: 12.4, d: 1.8 }, { f: D5, t: 14, d: 1.5 },
+                { f: A2, t: 16, d: 5.5 }, { f: C5, t: 16.3, d: 2 }, { f: E4, t: 18.3, d: 1.8 },
+                { f: F3, t: 20, d: 5.5 }, { f: A3, t: 20.4, d: 2.2 }, { f: C5, t: 22.3, d: 1.5 },
+                { f: C3, t: 24, d: 3 }, { f: E4, t: 24.4, d: 1.8 },
+                { f: G3, t: 27, d: 3 }, { f: D5, t: 27.4, d: 1.5 }, { f: B4, t: 29, d: 1 },
+                { f: A2, t: 30, d: 7 }, { f: A3, t: 30.3, d: 3 }, { f: C5, t: 33, d: 1.8 }, { f: E4, t: 35, d: 2 },
+            ];
+        }
+
+        function playMelody() {
+            if (!audioCtx || !musicPlaying) return;
+            const melody = getMelody();
+            const now = audioCtx.currentTime;
+            const LOOP = 38;
+            for (const n of melody) {
+                pianoNote(n.f, now + n.t, n.d * 1.0, 0.4);
+            }
+            melodyTimer = setTimeout(() => playMelody(), LOOP * 1000);
+        }
+
+        function stopMelody() {
+            if (melodyTimer) { clearTimeout(melodyTimer); melodyTimer = null; }
+        }
 
         function initAudio() {
             if (audioCtx) return;
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
+            audioCtx = new (window.AudioContext || window.webkitAudioContext());
+            const rev = createReverb();
             musicGainNode = audioCtx.createGain();
-            musicGainNode.gain.value = 0.45;
-            musicGainNode.connect(audioCtx.destination);
-
-            // 创建背景音乐元素
-            bgMusic = new Audio();
-            bgMusic.src = 'https://upload.wikimedia.org/wikipedia/commons/1/15/Brahms_-_Waltz_in_A_flat_major%2C_Op._39_No._15.ogg';
-            bgMusic.loop = true;
-            bgMusic.preload = 'auto';
-            bgMusic.volume = 0.4;
-
-            // 通过 Web Audio API 路由以支持音量控制
-            const source = audioCtx.createMediaElementSource(bgMusic);
-            source.connect(musicGainNode);
-
-            bgMusic.play().then(() => {
-                musicPlaying = true;
-                if (musicToggleEl) {
-                    musicToggleEl.innerHTML = '🎹';
-                    musicToggleEl.title = '暂停钢琴曲';
-                    musicToggleEl.style.color = 'rgba(255,255,255,0.7)';
-                }
-            }).catch(e => {
-                // 自动播放被浏览器阻止，等用户交互后启动
-                console.log('Autoplay blocked, waiting for interaction');
-                document.addEventListener('click', () => {
-                    if (!musicPlaying && bgMusic) bgMusic.play().then(() => { musicPlaying = true; });
-                }, { once: true });
-            });
+            musicGainNode.gain.value = 0.55;
+            musicGainNode.connect(rev.dry);
+            musicGainNode.connect(rev.conv);
+            rev.dry.connect(audioCtx.destination);
+            rev.conv.connect(rev.wet);
+            rev.wet.connect(audioCtx.destination);
+            musicPlaying = true;
+            playMelody();
         }
 
         // ── 星光乍现音效 ──
@@ -1708,14 +1779,14 @@
                 } else if (musicPlaying) {
                     musicGainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.6);
                     musicPlaying = false;
-                    if (bgMusic) bgMusic.pause();
+                    stopMelody();
                     musicToggleEl.innerHTML = '🎵';
                     musicToggleEl.title = '开启钢琴曲';
                     musicToggleEl.style.color = 'rgba(255,255,255,0.5)';
                 } else {
-                    musicGainNode.gain.linearRampToValueAtTime(0.45, audioCtx.currentTime + 0.5);
+                    musicGainNode.gain.linearRampToValueAtTime(0.55, audioCtx.currentTime + 0.5);
                     musicPlaying = true;
-                    if (bgMusic) bgMusic.play();
+                    playMelody();
                     musicToggleEl.innerHTML = '🎹';
                     musicToggleEl.title = '暂停钢琴曲';
                     musicToggleEl.style.color = 'rgba(255,255,255,0.7)';
@@ -1829,19 +1900,19 @@
         setQuoteContent(startIndex);
         lastAnswerIndex = startIndex;
         entranceAnimation();
-        createMusicToggle();
 
-        // 页面加载完成后自动尝试播放音乐
-        initAudio();
-        if (musicToggleEl) {
-            musicToggleEl.innerHTML = '🎹';
-            musicToggleEl.title = '暂停钢琴曲';
-            musicToggleEl.style.color = 'rgba(255,255,255,0.7)';
-        }
+        // 用户首次点击页面时初始化音频并播放
+        document.addEventListener('click', function initOnClick() {
+            initAudio();
+            if (!musicPlaying) {
+                bgMusic.play().then(() => {
+                    musicPlaying = true;
+                }).catch(() => {});
+            }
+        }, { once: true });
 
         console.log('🌌 宇宙赠言 — 写下一个问题，星辰将为你作答。');
         console.log('💡 试试在右侧输入框中写下你的困惑，然后按回车——');
-        console.log('🔊 右下角可开启 / 关闭宇宙之音');
     </script>
 </body>
 </html>
