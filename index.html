@@ -1589,8 +1589,17 @@
 
             bgMusic.play().then(() => {
                 musicPlaying = true;
+                if (musicToggleEl) {
+                    musicToggleEl.innerHTML = '🎹';
+                    musicToggleEl.title = '暂停钢琴曲';
+                    musicToggleEl.style.color = 'rgba(255,255,255,0.7)';
+                }
             }).catch(e => {
-                console.log('Music autoplay blocked, waiting for user interaction');
+                // 自动播放被浏览器阻止，等用户交互后启动
+                console.log('Autoplay blocked, waiting for interaction');
+                document.addEventListener('click', () => {
+                    if (!musicPlaying && bgMusic) bgMusic.play().then(() => { musicPlaying = true; });
+                }, { once: true });
             });
         }
 
@@ -1822,9 +1831,13 @@
         entranceAnimation();
         createMusicToggle();
 
-        // 首次页面交互时自动启动音频
-        document.addEventListener('click', autoStartAudio, { once: true });
-        document.addEventListener('keydown', autoStartAudio, { once: true });
+        // 页面加载完成后自动尝试播放音乐
+        initAudio();
+        if (musicToggleEl) {
+            musicToggleEl.innerHTML = '🎹';
+            musicToggleEl.title = '暂停钢琴曲';
+            musicToggleEl.style.color = 'rgba(255,255,255,0.7)';
+        }
 
         console.log('🌌 宇宙赠言 — 写下一个问题，星辰将为你作答。');
         console.log('💡 试试在右侧输入框中写下你的困惑，然后按回车——');
