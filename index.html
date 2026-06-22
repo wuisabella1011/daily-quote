@@ -1625,32 +1625,194 @@
             return { conv, dry, wet };
         }
 
-        // ── 钢琴旋律（A 小调，约 60 BPM，38 秒循环） ──
+        // ── 钢琴旋律（丰富多轨编曲：左右手+和弦+低音，64秒循环） ──
         function getMelody() {
-            const A2=110, C3=130.81, D3=146.83, F3=174.61, G3=196;
-            const A3=220, C4=261.63, D4=293.66, E4=329.63, F4=349.23, G4=392;
-            const B4=493.88, C5=523.25, D5=587.33, E5=659.25, F5=698.46;
-            // 和弦走向: Am | F | C | G | Am | F | C G | Am
-            return [
-                { f: A2, t: 0, d: 5.5 }, { f: A3, t: 0.4, d: 2.2 }, { f: E4, t: 2.3, d: 1.8 },
-                { f: F3, t: 4, d: 5.5 }, { f: A3, t: 4.4, d: 2.2 }, { f: F4, t: 6.3, d: 1.8 },
-                { f: C3, t: 8, d: 5.5 }, { f: C4, t: 8.3, d: 1.8 }, { f: G4, t: 10, d: 2 },
-                { f: G3, t: 12, d: 5.5 }, { f: B4, t: 12.4, d: 1.8 }, { f: D5, t: 14, d: 1.5 },
-                { f: A2, t: 16, d: 5.5 }, { f: C5, t: 16.3, d: 2 }, { f: E4, t: 18.3, d: 1.8 },
-                { f: F3, t: 20, d: 5.5 }, { f: A3, t: 20.4, d: 2.2 }, { f: C5, t: 22.3, d: 1.5 },
-                { f: C3, t: 24, d: 3 }, { f: E4, t: 24.4, d: 1.8 },
-                { f: G3, t: 27, d: 3 }, { f: D5, t: 27.4, d: 1.5 }, { f: B4, t: 29, d: 1 },
-                { f: A2, t: 30, d: 7 }, { f: A3, t: 30.3, d: 3 }, { f: C5, t: 33, d: 1.8 }, { f: E4, t: 35, d: 2 },
-            ];
+            // 频率表
+            const A1=55, C2=65.41, D2=73.42, E2=82.41, F2=87.31, G2=98, A2=110;
+            const C3=130.81, D3=146.83, E3=164.81, F3=174.61, G3=196, A3=220, B3=246.94;
+            const C4=261.63, D4=293.66, E4=329.63, F4=349.23, G4=392, A4=440, B4=493.88;
+            const C5=523.25, D5=587.33, E5=659.25, F5=698.46, G5=783.99, A5=880;
+            const C6=1046.5, D6=1174.66, E6=1318.5;
+
+            // 每拍 = 1.0 秒，16 小节 × 4 拍 = 64 秒循环
+            // 和弦: Am | F | C | G | Dm | Am | F G | Am | C | Am | F | G | Em | Am | F G | C
+            const notes = [];
+            const beat = 1.0;
+
+            function chord(time, notesArr, dur, vel = 0.35) {
+                for (const f of notesArr) {
+                    notes.push({ f, t: time, d: dur, v: vel });
+                }
+            }
+
+            // 小节 1: Am (左手低音 + 分解和弦 + 旋律)
+            notes.push({ f: A2, t: 0, d: 4, v: 0.5 });
+            notes.push({ f: A1, t: 0, d: 4, v: 0.3 });
+            chord(0, [A3, C4, E4], 3.5, 0.2);
+            notes.push({ f: E4, t: 0, d: 1.5, v: 0.5 });
+            notes.push({ f: C4, t: 0.8, d: 1, v: 0.45 });
+            notes.push({ f: A3, t: 1.6, d: 0.8, v: 0.4 });
+            notes.push({ f: E4, t: 2.2, d: 1.2, v: 0.48 });
+            notes.push({ f: D4, t: 3.0, d: 0.7, v: 0.42 });
+
+            // 小节 2: F
+            notes.push({ f: F2, t: 4, d: 4, v: 0.5 });
+            chord(4, [F3, A3, C4], 3.5, 0.2);
+            notes.push({ f: C4, t: 4, d: 1.5, v: 0.5 });
+            notes.push({ f: A3, t: 4.8, d: 1, v: 0.45 });
+            notes.push({ f: F4, t: 5.6, d: 0.8, v: 0.42 });
+            notes.push({ f: C4, t: 6.2, d: 1.2, v: 0.48 });
+            notes.push({ f: A3, t: 7.0, d: 0.7, v: 0.4 });
+            notes.push({ f: F3, t: 7.5, d: 0.5, v: 0.35 });
+
+            // 小节 3: C
+            notes.push({ f: C3, t: 8, d: 4, v: 0.5 });
+            chord(8, [C3, E3, G3], 3.5, 0.2);
+            notes.push({ f: G4, t: 8, d: 1.5, v: 0.52 });
+            notes.push({ f: E4, t: 8.6, d: 1, v: 0.45 });
+            notes.push({ f: C5, t: 9.3, d: 1, v: 0.46 });
+            notes.push({ f: G4, t: 10.0, d: 1.2, v: 0.48 });
+            notes.push({ f: E4, t: 10.8, d: 0.8, v: 0.42 });
+            notes.push({ f: D4, t: 11.4, d: 0.6, v: 0.38 });
+
+            // 小节 4: G
+            notes.push({ f: G2, t: 12, d: 4, v: 0.5 });
+            chord(12, [G3, B3, D4], 3.5, 0.22);
+            notes.push({ f: B4, t: 12, d: 1.5, v: 0.5 });
+            notes.push({ f: D5, t: 12.7, d: 1, v: 0.46 });
+            notes.push({ f: G4, t: 13.4, d: 0.8, v: 0.44 });
+            notes.push({ f: B4, t: 14.0, d: 1.2, v: 0.48 });
+            notes.push({ f: A4, t: 14.8, d: 0.7, v: 0.42 });
+            notes.push({ f: G4, t: 15.4, d: 0.6, v: 0.38 });
+
+            // 小节 5: Dm（带来一丝忧郁色彩）
+            notes.push({ f: D3, t: 16, d: 4, v: 0.48 });
+            chord(16, [D3, F3, A3], 3.5, 0.2);
+            notes.push({ f: F4, t: 16, d: 1.5, v: 0.5 });
+            notes.push({ f: A3, t: 16.7, d: 1, v: 0.44 });
+            notes.push({ f: D4, t: 17.3, d: 1, v: 0.45 });
+            notes.push({ f: A4, t: 18.0, d: 1.2, v: 0.48 });
+            notes.push({ f: F4, t: 18.8, d: 0.8, v: 0.42 });
+            notes.push({ f: D4, t: 19.5, d: 0.5, v: 0.38 });
+
+            // 小节 6: Am（回归）
+            notes.push({ f: A2, t: 20, d: 4, v: 0.5 });
+            chord(20, [A3, C4, E4], 3.5, 0.2);
+            notes.push({ f: E5, t: 20, d: 1.5, v: 0.5 });
+            notes.push({ f: C5, t: 20.6, d: 1, v: 0.46 });
+            notes.push({ f: A4, t: 21.3, d: 0.8, v: 0.44 });
+            notes.push({ f: C5, t: 22.0, d: 1.2, v: 0.48 });
+            notes.push({ f: E5, t: 22.8, d: 0.8, v: 0.44 });
+            notes.push({ f: A4, t: 23.5, d: 0.5, v: 0.38 });
+
+            // 小节 7: F -> G（过渡）
+            notes.push({ f: F3, t: 24, d: 2.5, v: 0.48 });
+            chord(24, [F3, A3, C4], 2.3, 0.2);
+            notes.push({ f: A4, t: 24, d: 1.2, v: 0.5 });
+            notes.push({ f: C5, t: 24.8, d: 0.8, v: 0.44 });
+            notes.push({ f: F4, t: 25.5, d: 0.6, v: 0.4 });
+            // G 半小节
+            notes.push({ f: G3, t: 26.5, d: 2, v: 0.48 });
+            chord(26.5, [G3, B3, D4], 1.8, 0.22);
+            notes.push({ f: D5, t: 26.5, d: 1, v: 0.5 });
+            notes.push({ f: B4, t: 27.2, d: 0.8, v: 0.44 });
+            notes.push({ f: G4, t: 27.8, d: 0.7, v: 0.4 });
+
+            // 小节 8: Am（半终止）
+            notes.push({ f: A2, t: 28.5, d: 4, v: 0.5 });
+            chord(28.5, [A3, C4, E4, A4], 4, 0.2);
+            notes.push({ f: A4, t: 28.5, d: 2.5, v: 0.5 });
+            notes.push({ f: C5, t: 29.5, d: 1, v: 0.44 });
+            notes.push({ f: E4, t: 30.3, d: 1.2, v: 0.46 });
+            notes.push({ f: A3, t: 31.5, d: 1, v: 0.38 });
+
+            // 小节 9: C（温暖转折）
+            notes.push({ f: C3, t: 32.5, d: 4, v: 0.5 });
+            chord(32.5, [C3, E3, G3], 4, 0.2);
+            notes.push({ f: G4, t: 32.5, d: 1.5, v: 0.5 });
+            notes.push({ f: E5, t: 33.3, d: 1, v: 0.46 });
+            notes.push({ f: C5, t: 34.0, d: 1.2, v: 0.48 });
+            notes.push({ f: G4, t: 34.8, d: 0.8, v: 0.44 });
+            notes.push({ f: E4, t: 35.5, d: 1, v: 0.42 });
+
+            // 小节 10: Am
+            notes.push({ f: A2, t: 36.5, d: 4, v: 0.5 });
+            chord(36.5, [A3, C4, E4], 4, 0.2);
+            notes.push({ f: C5, t: 36.5, d: 1.5, v: 0.5 });
+            notes.push({ f: E4, t: 37.3, d: 1, v: 0.44 });
+            notes.push({ f: A4, t: 38.0, d: 1.2, v: 0.48 });
+            notes.push({ f: C5, t: 38.8, d: 0.8, v: 0.44 });
+            notes.push({ f: E4, t: 39.5, d: 1, v: 0.42 });
+
+            // 小节 11: F
+            notes.push({ f: F3, t: 40.5, d: 4, v: 0.5 });
+            chord(40.5, [F3, A3, C4], 4, 0.2);
+            notes.push({ f: F4, t: 40.5, d: 1.5, v: 0.5 });
+            notes.push({ f: A4, t: 41.2, d: 1, v: 0.45 });
+            notes.push({ f: C5, t: 41.8, d: 1, v: 0.46 });
+            notes.push({ f: F4, t: 42.5, d: 0.8, v: 0.44 });
+            notes.push({ f: A3, t: 43.2, d: 0.8, v: 0.4 });
+            notes.push({ f: C4, t: 43.8, d: 0.7, v: 0.38 });
+
+            // 小节 12: G
+            notes.push({ f: G3, t: 44.5, d: 4, v: 0.5 });
+            chord(44.5, [G3, B3, D4], 4, 0.22);
+            notes.push({ f: B4, t: 44.5, d: 1.5, v: 0.5 });
+            notes.push({ f: G4, t: 45.2, d: 0.8, v: 0.45 });
+            notes.push({ f: D5, t: 45.8, d: 1, v: 0.46 });
+            notes.push({ f: B4, t: 46.5, d: 0.8, v: 0.44 });
+            notes.push({ f: G4, t: 47.2, d: 0.8, v: 0.4 });
+            notes.push({ f: D4, t: 47.8, d: 0.7, v: 0.38 });
+
+            // 小节 13: Em（新色彩）
+            notes.push({ f: E3, t: 48.5, d: 4, v: 0.48 });
+            chord(48.5, [E3, G3, B3], 4, 0.2);
+            notes.push({ f: G4, t: 48.5, d: 1.5, v: 0.5 });
+            notes.push({ f: B4, t: 49.2, d: 1, v: 0.45 });
+            notes.push({ f: E5, t: 49.8, d: 1, v: 0.46 });
+            notes.push({ f: D5, t: 50.5, d: 1.2, v: 0.48 });
+            notes.push({ f: B4, t: 51.3, d: 0.8, v: 0.44 });
+            notes.push({ f: G4, t: 52, d: 0.5, v: 0.38 });
+
+            // 小节 14: Am
+            notes.push({ f: A2, t: 52.5, d: 4, v: 0.5 });
+            chord(52.5, [A3, C4, E4], 4, 0.2);
+            notes.push({ f: A4, t: 52.5, d: 1.5, v: 0.5 });
+            notes.push({ f: C5, t: 53.3, d: 1, v: 0.46 });
+            notes.push({ f: E5, t: 54.0, d: 1.2, v: 0.48 });
+            notes.push({ f: A4, t: 54.8, d: 0.8, v: 0.44 });
+            notes.push({ f: C5, t: 55.5, d: 1, v: 0.42 });
+
+            // 小节 15: F -> G（过渡）
+            notes.push({ f: F3, t: 56.5, d: 2.2, v: 0.48 });
+            chord(56.5, [F3, A3, C4, F4], 2, 0.2);
+            notes.push({ f: F4, t: 56.5, d: 1.2, v: 0.5 });
+            notes.push({ f: A4, t: 57.3, d: 0.8, v: 0.44 });
+            notes.push({ f: G3, t: 58.7, d: 2.2, v: 0.48 });
+            chord(58.7, [G3, B3, D4, G4], 2, 0.22);
+            notes.push({ f: G4, t: 58.7, d: 1, v: 0.5 });
+            notes.push({ f: B4, t: 59.4, d: 0.8, v: 0.44 });
+            notes.push({ f: D5, t: 60, d: 0.8, v: 0.44 });
+
+            // 小节 16: C（温暖结尾）
+            notes.push({ f: C3, t: 60.5, d: 4, v: 0.5 });
+            chord(60.5, [C3, E3, G3, C4], 4, 0.22);
+            notes.push({ f: E5, t: 60.5, d: 1.5, v: 0.5 });
+            notes.push({ f: C5, t: 61.3, d: 1, v: 0.46 });
+            notes.push({ f: G4, t: 62.0, d: 0.8, v: 0.44 });
+            notes.push({ f: E4, t: 62.5, d: 1.2, v: 0.48 });
+            notes.push({ f: C5, t: 63.2, d: 0.8, v: 0.44 });
+
+            return notes;
         }
 
         function playMelody() {
             if (!audioCtx || !musicPlaying) return;
             const melody = getMelody();
             const now = audioCtx.currentTime;
-            const LOOP = 38;
+            const LOOP = 64.5;
             for (const n of melody) {
-                pianoNote(n.f, now + n.t, n.d * 1.0, 0.4);
+                pianoNote(n.f, now + n.t, n.d * 1.0, n.v || 0.4);
             }
             melodyTimer = setTimeout(() => playMelody(), LOOP * 1000);
         }
