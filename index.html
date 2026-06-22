@@ -1900,15 +1900,11 @@
         setQuoteContent(startIndex);
         lastAnswerIndex = startIndex;
         entranceAnimation();
+        createMusicToggle();
 
-        // 用户首次点击页面时初始化音频并播放
+        // 用户首次点击页面时初始化音频并自动播放
         document.addEventListener('click', function initOnClick() {
             initAudio();
-            if (!musicPlaying) {
-                bgMusic.play().then(() => {
-                    musicPlaying = true;
-                }).catch(() => {});
-            }
         }, { once: true });
 
         console.log('🌌 宇宙赠言 — 写下一个问题，星辰将为你作答。');
