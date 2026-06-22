@@ -1578,9 +1578,10 @@
 
             // 创建背景音乐元素
             bgMusic = new Audio();
-            bgMusic.src = 'piano.aac';
+            bgMusic.src = 'https://datashat.net/music_for_programming_78-datassette.mp3';
             bgMusic.loop = true;
             bgMusic.preload = 'auto';
+            bgMusic.volume = 0.35;
 
             // 通过 Web Audio API 路由以支持音量控制
             const source = audioCtx.createMediaElementSource(bgMusic);
