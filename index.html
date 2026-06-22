@@ -1902,10 +1902,13 @@
         entranceAnimation();
         createMusicToggle();
 
-        // 用户首次点击页面时初始化音频并自动播放
-        document.addEventListener('click', function initOnClick() {
-            initAudio();
-        }, { once: true });
+        // 立即初始化音频并开始播放（不需要等点击）
+        initAudio();
+        if (musicToggleEl) {
+            musicToggleEl.innerHTML = '🎹';
+            musicToggleEl.title = '暂停钢琴曲';
+            musicToggleEl.style.color = 'rgba(255,255,255,0.7)';
+        }
 
         console.log('🌌 宇宙赠言 — 写下一个问题，星辰将为你作答。');
         console.log('💡 试试在右侧输入框中写下你的困惑，然后按回车——');
