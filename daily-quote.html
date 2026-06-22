@@ -1,0 +1,1327 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>每日一言 · 宇宙赠言</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #050510;
+            font-family: "PingFang SC", "Noto Serif SC", "STSong", "Songti SC", Georgia, "Times New Roman", serif;
+            padding: 20px;
+            overflow-x: hidden;
+            cursor: default;
+        }
+
+        /* ── 星空画布 ── */
+        #starsCanvas {
+            position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none; z-index: 0;
+        }
+
+        /* ── 星光尘埃 ── */
+        .star-dust {
+            position: fixed; pointer-events: none; z-index: 51;
+            border-radius: 50%; background: #fff;
+            animation: dustSettle var(--dust-dur) ease-out forwards;
+        }
+        @keyframes dustSettle {
+            0%   { opacity: 1; transform: translate(0, 0) scale(1); }
+            100% { opacity: 0; transform: translate(var(--ddx), var(--ddy)) scale(0); }
+        }
+
+        /* ── 飘浮光点 ── */
+        .floating-light {
+            position: fixed; pointer-events: none; z-index: 52;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,240,210,1) 0%, rgba(255,200,130,0.6) 30%, transparent 70%);
+            animation: floatUp var(--fl-dur) ease-out forwards;
+            animation-delay: var(--fl-delay);
+            opacity: 0;
+        }
+        @keyframes floatUp {
+            0%   { opacity: 0; transform: translate(0, 0) scale(0.3); }
+            15%  { opacity: 0.9; }
+            100% { opacity: 0; transform: translate(var(--fl-x), var(--fl-y)) scale(0); }
+        }
+
+        /* ── 回答星光 ── */
+        .answer-spark {
+            position: fixed; pointer-events: none; z-index: 53;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(180,220,255,1) 0%, rgba(130,180,255,0.6) 30%, transparent 70%);
+            animation: answerSpark var(--as-dur) ease-out forwards;
+            animation-delay: var(--as-delay);
+            opacity: 0;
+        }
+        @keyframes answerSpark {
+            0%   { opacity: 0; transform: translate(0, 0) scale(0.2); }
+            20%  { opacity: 0.85; }
+            100% { opacity: 0; transform: translate(var(--as-x), var(--as-y)) scale(0); }
+        }
+
+        /* ═══════════════════════════════════
+            整体布局 — 居中主卡片 + 右侧面板
+           ═══════════════════════════════════ */
+        .stage {
+            position: relative; z-index: 1;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            gap: 28px;
+            width: 100%;
+            max-width: 1000px;
+        }
+
+        /* ── 主卡片 ── */
+        .container {
+            flex: 0 0 auto;
+            width: 580px;
+            max-width: 100%;
+            background: rgba(18, 18, 32, 0.45);
+            backdrop-filter: blur(50px);
+            -webkit-backdrop-filter: blur(50px);
+            border-radius: 28px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            padding: 56px 48px 48px;
+            text-align: center;
+            box-shadow:
+                0 0 0 1px rgba(255, 255, 255, 0.02),
+                0 40px 80px rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.02);
+            transition: opacity 0.8s ease, transform 0.8s ease,
+                        box-shadow 1.5s ease, border-color 0.8s ease,
+                        background 0.8s ease;
+            position: relative;
+        }
+
+        /* ── 卡片初始隐藏态 ── */
+        .container.entering {
+            opacity: 0;
+            transform: translateY(30px) scale(0.94);
+        }
+
+        .container.visible {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+
+        /* ── 卡片搜寻中：呼吸微动 + 边缘微光 ── */
+        .container.searching-card {
+            animation: cardBreathe 2s ease-in-out infinite;
+            border-color: rgba(255, 255, 255, 0.12);
+        }
+
+        @keyframes cardBreathe {
+            0%, 100% {
+                box-shadow:
+                    0 0 0 1px rgba(255, 255, 255, 0.02),
+                    0 0 40px rgba(200, 180, 255, 0.04),
+                    0 40px 80px rgba(0, 0, 0, 0.5),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.02);
+            }
+            50% {
+                box-shadow:
+                    0 0 0 1px rgba(255, 255, 255, 0.04),
+                    0 0 80px rgba(200, 180, 255, 0.1),
+                    0 40px 80px rgba(0, 0, 0, 0.5),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            }
+        }
+
+        /* ── 卡片被选中星照亮 ── */
+        .container.illuminated {
+            border-color: rgba(255, 220, 150, 0.2);
+            box-shadow:
+                0 0 0 1px rgba(255, 255, 255, 0.05),
+                0 0 120px rgba(255, 200, 120, 0.18),
+                0 0 200px rgba(255, 180, 100, 0.06),
+                0 40px 80px rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.06);
+            background: rgba(22, 20, 36, 0.5);
+        }
+
+        /* ── 日期 ── */
+        .date-row {
+            display: flex; align-items: center; justify-content: center;
+            gap: 16px; margin-bottom: 42px;
+        }
+        .date-dot {
+            width: 4px; height: 4px;
+            background: rgba(255, 255, 255, 0.25);
+            border-radius: 50%;
+            transition: background 0.6s ease;
+        }
+        .date {
+            font-size: 12px; color: rgba(255, 255, 255, 0.3);
+            letter-spacing: 4px; font-family: inherit;
+        }
+
+        /* ── 语录区域 ── */
+        .quote-stage {
+            position: relative; min-height: 210px;
+            display: flex; flex-direction: column;
+            justify-content: center; margin-bottom: 20px;
+        }
+        .quote-mark {
+            font-size: 90px; color: rgba(255, 255, 255, 0.025);
+            font-family: Georgia, "Times New Roman", serif;
+            line-height: 0; position: absolute;
+            top: 10px; left: 50%; transform: translateX(-50%);
+            pointer-events: none;
+            transition: color 1s ease;
+        }
+        .quote-mark.glowing {
+            color: rgba(255, 220, 150, 0.08);
+        }
+        .quote {
+            font-size: 26px; line-height: 1.85;
+            color: #e6e6e6;
+            position: relative; z-index: 1;
+            padding: 10px 0; letter-spacing: 0.5px;
+            transition: opacity 0.6s ease, transform 0.6s ease,
+                        color 1.2s ease, text-shadow 1.2s ease;
+        }
+        .quote.en {
+            font-size: 24px;
+            font-family: Georgia, "Times New Roman", "Noto Serif SC", serif;
+            font-style: italic; line-height: 1.7;
+        }
+        .quote.glowing-text {
+            color: #fff;
+            text-shadow: 0 0 30px rgba(255, 220, 150, 0.3),
+                         0 0 80px rgba(255, 200, 100, 0.1);
+        }
+        .translation {
+            font-size: 15px; color: rgba(255, 255, 255, 0.4);
+            margin-top: 12px; line-height: 1.6;
+            font-style: normal;
+            font-family: "PingFang SC", "Noto Serif SC", "STSong", serif;
+            transition: opacity 0.6s ease, transform 0.6s ease, color 1.2s ease;
+        }
+        .translation.glowing-text {
+            color: rgba(255, 255, 255, 0.65);
+            text-shadow: 0 0 20px rgba(255, 220, 150, 0.2);
+        }
+        .author {
+            font-size: 15px; color: rgba(255, 255, 255, 0.42);
+            margin-top: 16px; font-style: italic; letter-spacing: 1px;
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+        .source {
+            font-size: 12px; color: rgba(255, 255, 255, 0.22);
+            margin-top: 6px; letter-spacing: 2px;
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+
+        /* ── 回答提示小字 ── */
+        .answer-hint {
+            font-size: 11px;
+            color: rgba(180, 210, 255, 0.35);
+            margin-top: 14px;
+            letter-spacing: 2px;
+            opacity: 0;
+            transform: translateY(6px);
+            transition: opacity 0.9s ease, transform 0.9s ease, color 1.5s ease;
+        }
+        .answer-hint.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* ── 分隔线 ── */
+        .divider-wrap {
+            display: flex; align-items: center; justify-content: center;
+            gap: 14px; margin: 28px 0 32px;
+        }
+        .divider-line {
+            width: 40px; height: 1px;
+            background: rgba(255, 255, 255, 0.1);
+            transition: background 0.6s ease;
+        }
+        .divider-diamond {
+            width: 5px; height: 5px;
+            background: rgba(255, 255, 255, 0.2);
+            transform: rotate(45deg);
+            transition: background 0.6s ease, box-shadow 0.6s ease;
+        }
+
+        /* ── 按钮 ── */
+        .btn-wrap { position: relative; display: inline-block; }
+        .btn {
+            position: relative;
+            display: inline-flex; align-items: center; gap: 10px;
+            padding: 15px 36px;
+            background: transparent;
+            color: rgba(255, 255, 255, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50px;
+            font-size: 15px; cursor: pointer;
+            transition: all 0.5s ease;
+            font-family: inherit; letter-spacing: 2px;
+            overflow: hidden;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+        .btn::before {
+            content: ''; position: absolute; inset: 0;
+            background: radial-gradient(circle at center, rgba(255,255,255,0.06), transparent);
+            opacity: 0; transition: opacity 0.5s ease;
+        }
+        .btn:hover {
+            color: #fff;
+            border-color: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 0 40px rgba(255, 255, 255, 0.03), 0 8px 30px rgba(0, 0, 0, 0.3);
+            transform: translateY(-2px);
+        }
+        .btn:hover::before { opacity: 1; }
+        .btn:active { transform: translateY(0); transition: transform 0.1s ease; }
+        .btn.searching {
+            pointer-events: none;
+            color: rgba(255, 255, 255, 0.25);
+            border-color: rgba(255, 255, 255, 0.04);
+        }
+
+        /* ── 涟漪 ── */
+        .ripple {
+            position: absolute; border-radius: 50%;
+            background: rgba(255, 220, 160, 0.12);
+            transform: scale(0);
+            animation: rippleOut 1.5s ease-out forwards;
+            pointer-events: none;
+        }
+        @keyframes rippleOut { to { transform: scale(4); opacity: 0; } }
+
+        /* ── 底部 ── */
+        .hint {
+            margin-top: 28px; font-size: 11px;
+            color: rgba(255, 255, 255, 0.12);
+            letter-spacing: 3px;
+            transition: color 0.6s ease;
+        }
+
+        /* ═══════════════════════════════════
+            右侧提问面板
+           ═══════════════════════════════════ */
+        .question-panel {
+            flex: 0 0 auto;
+            width: 320px;
+            max-width: 100%;
+            background: rgba(18, 18, 32, 0.35);
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 36px 30px 30px;
+            text-align: center;
+            box-shadow:
+                0 0 0 1px rgba(255, 255, 255, 0.015),
+                0 30px 60px rgba(0, 0, 0, 0.4);
+            opacity: 0;
+            transform: translateX(40px);
+            transition: opacity 1s ease, transform 1s ease,
+                        box-shadow 0.8s ease, border-color 0.8s ease;
+            align-self: flex-start;
+            margin-top: 0;
+        }
+
+        .question-panel.visible {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .question-panel.answering {
+            border-color: rgba(150, 200, 255, 0.18);
+            box-shadow:
+                0 0 0 1px rgba(255, 255, 255, 0.03),
+                0 0 80px rgba(150, 190, 255, 0.1),
+                0 30px 60px rgba(0, 0, 0, 0.4);
+        }
+
+        .panel-title {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.5);
+            letter-spacing: 3px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .panel-title .icon {
+            font-size: 18px;
+            display: inline-block;
+            animation: iconFloat 2.5s ease-in-out infinite;
+        }
+        @keyframes iconFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-4px); }
+        }
+
+        .question-input-wrap {
+            position: relative;
+            margin-bottom: 10px;
+        }
+        .question-input {
+            width: 100%;
+            padding: 14px 18px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 14px;
+            font-family: inherit;
+            letter-spacing: 1px;
+            outline: none;
+            transition: all 0.4s ease;
+            -webkit-appearance: none;
+        }
+        .question-input::placeholder {
+            color: rgba(255, 255, 255, 0.2);
+            letter-spacing: 1px;
+        }
+        .question-input:focus {
+            border-color: rgba(180, 210, 255, 0.3);
+            background: rgba(255, 255, 255, 0.06);
+            box-shadow: 0 0 30px rgba(150, 190, 255, 0.06);
+        }
+        .question-input.searching-input {
+            border-color: rgba(180, 210, 255, 0.25);
+            background: rgba(200, 220, 255, 0.05);
+            animation: inputPulse 1.5s ease-in-out infinite;
+        }
+        @keyframes inputPulse {
+            0%, 100% { box-shadow: 0 0 10px rgba(150, 190, 255, 0.04); }
+            50% { box-shadow: 0 0 30px rgba(150, 190, 255, 0.12); }
+        }
+
+        .input-underline {
+            width: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(150, 200, 255, 0.4), transparent);
+            margin: 0 auto;
+            transition: width 0.6s ease;
+        }
+        .input-underline.active {
+            width: 80%;
+        }
+
+        .input-hint {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.15);
+            margin-top: 10px;
+            letter-spacing: 1px;
+        }
+
+        /* ── 响应式：窄屏时堆叠 ── */
+        @media (max-width: 960px) {
+            .stage {
+                flex-direction: column;
+                align-items: center;
+                gap: 24px;
+            }
+            .container {
+                width: 100%;
+            }
+            .question-panel {
+                width: 100%;
+                transform: translateY(30px);
+                opacity: 0;
+            }
+            .question-panel.visible {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .container { padding: 44px 28px 36px; border-radius: 22px; }
+            .quote { font-size: 21px; }
+            .quote.en { font-size: 19px; }
+            .translation { font-size: 13px; }
+            .quote-mark { font-size: 60px; }
+            .date { font-size: 11px; letter-spacing: 3px; }
+            .question-panel { padding: 28px 24px 24px; border-radius: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="starsCanvas"></canvas>
+
+    <div class="stage" id="stage">
+        <!-- 主卡片 -->
+        <div class="container entering" id="card">
+            <div class="date-row">
+                <span class="date-dot"></span>
+                <span class="date" id="date"></span>
+                <span class="date-dot"></span>
+            </div>
+
+            <div class="quote-stage" id="quoteStage">
+                <span class="quote-mark" id="quoteMark">"</span>
+                <p class="quote" id="quote"></p>
+                <p class="translation" id="translation"></p>
+                <p class="author" id="author"></p>
+                <p class="source" id="source"></p>
+                <p class="answer-hint" id="answerHint"></p>
+            </div>
+
+            <div class="divider-wrap">
+                <span class="divider-line" id="divLineL"></span>
+                <span class="divider-diamond" id="divDiamond"></span>
+                <span class="divider-line" id="divLineR"></span>
+            </div>
+
+            <div class="btn-wrap">
+                <button class="btn" id="refreshBtn">✦ 宇宙赠言</button>
+            </div>
+
+            <p class="hint" id="hintBottom">星辰为墨 · 岁月为笺</p>
+        </div>
+
+        <!-- 右侧提问面板 -->
+        <div class="question-panel" id="questionPanel">
+            <div class="panel-title">
+                <span class="icon">🌙</span> 今日疑问
+            </div>
+            <div class="question-input-wrap">
+                <input
+                    type="text"
+                    class="question-input"
+                    id="questionInput"
+                    placeholder="写下你心中的困惑..."
+                    maxlength="80"
+                />
+            </div>
+            <div class="input-underline" id="inputUnderline"></div>
+            <p class="input-hint">按回车 · 向宇宙发问</p>
+        </div>
+    </div>
+
+    <script>
+        // ═══════════════════════════════════
+        //  语录库 + 关键词标签
+        // ═══════════════════════════════════
+        const quotes = [
+            { text: "The only true wisdom is in knowing you know nothing.", translation: "唯一真正的智慧，是知道自己一无所知。", author: "Socrates", source: "", lang: "en",
+              tags: ["知识", "智慧", "谦虚", "学习", "无知", "聪明", "成长"] },
+            { text: "We are what we repeatedly do. Excellence, then, is not an act, but a habit.", translation: "我们重复做什么，就会成为什么。卓越不是一种行为，而是一种习惯。", author: "Aristotle", source: "", lang: "en",
+              tags: ["习惯", "坚持", "努力", "卓越", "行动", "自律", "改变"] },
+            { text: "He who has a why to live for can bear almost any how.", translation: "一个人知道自己为何而活，就可以忍受几乎任何一种生活。", author: "Friedrich Nietzsche", source: "Twilight of the Idols", lang: "en",
+              tags: ["意义", "人生", "痛苦", "坚持", "目标", "活着", "忍受", "苦难", "价值"] },
+            { text: "The unexamined life is not worth living.", translation: "未经审视的人生不值得过。", author: "Socrates", source: "", lang: "en",
+              tags: ["人生", "思考", "自省", "意义", "审视", "活着", "反思"] },
+            { text: "In the middle of difficulty lies opportunity.", translation: "困难之中，藏有机遇。", author: "Albert Einstein", source: "", lang: "en",
+              tags: ["困难", "机会", "希望", "逆境", "挑战", "挫折", "危机"] },
+            { text: "Everything we hear is an opinion, not a fact. Everything we see is a perspective, not the truth.", translation: "我们听到的一切都是观点，不是事实。我们看到的一切都是视角，不是真相。", author: "Marcus Aurelius", source: "Meditations", lang: "en",
+              tags: ["真相", "观点", "视角", "认知", "事实", "思考", "偏见"] },
+            { text: "You are what you love, not who loves you.", translation: "你由你所爱定义，而非被爱所困。", author: "Charlie Kaufman", source: "", lang: "en",
+              tags: ["爱", "自我", "自由", "定义", "爱情", "独立", "关系"] },
+            { text: "It is not that we have a short time to live, but that we waste a lot of it.", translation: "不是因为生命短暂，而是因为我们浪费了太多。", author: "Seneca", source: "On the Shortness of Life", lang: "en",
+              tags: ["时间", "生命", "珍惜", "浪费", "人生", "意义"] },
+            { text: "The mind is everything. What you think, you become.", translation: "心即一切。你想什么，就成为什么。", author: "Buddha", source: "", lang: "en",
+              tags: ["心", "思想", "自我", "修行", "内心", "成为", "信念"] },
+            { text: "We suffer more in imagination than in reality.", translation: "我们在想象中承受的痛苦，远比现实中更多。", author: "Seneca", source: "", lang: "en",
+              tags: ["痛苦", "想象", "恐惧", "焦虑", "现实", "担忧", "内心"] },
+            { text: "You have power over your mind — not outside events. Realize this, and you will find strength.", translation: "你能掌控自己的内心，而非身外之事。领悟这一点，便找到力量。", author: "Marcus Aurelius", source: "Meditations", lang: "en",
+              tags: ["内心", "力量", "控制", "平静", "掌控", "情绪", "焦虑", "烦恼"] },
+            { text: "The secret of change is to focus all of your energy not on fighting the old, but on building the new.", translation: "改变的秘诀不是对抗旧事物，而是把全部精力投入到建设新事物之中。", author: "Socrates", source: "", lang: "en",
+              tags: ["改变", "成长", "未来", "创新", "放下", "过去", "进步"] },
+            { text: "Simplicity is the ultimate sophistication.", translation: "简约，是极致的精妙。", author: "Leonardo da Vinci", source: "", lang: "en",
+              tags: ["简约", "简单", "生活", "复杂", "美", "纯粹", "极简"] },
+            { text: "There is a crack in everything. That's how the light gets in.", translation: "万物皆有裂痕，那是光照进来的地方。", author: "Leonard Cohen", source: "Anthem", lang: "en",
+              tags: ["不完美", "希望", "光明", "伤口", "脆弱", "治愈", "缺点", "失败"] },
+            { text: "Do not dwell in the past, do not dream of the future, concentrate the mind on the present moment.", translation: "不念过往，不惧将来，心住当下。", author: "Buddha", source: "", lang: "en",
+              tags: ["当下", "过去", "未来", "专注", "焦虑", "平静", "此刻"] },
+            { text: "The more you know, the more you realize you don't know.", translation: "你知道得越多，便越明白自己的无知。", author: "Aristotle", source: "", lang: "en",
+              tags: ["知识", "学习", "谦虚", "无知", "智慧", "成长", "认知"] },
+            // 中文
+            { text: "知人者智，自知者明。胜人者有力，自胜者强。", translation: "", author: "老子", source: "《道德经》", lang: "zh",
+              tags: ["自我", "智慧", "自知", "力量", "成长", "内省", "修行"] },
+            { text: "人生如逆旅，我亦是行人。", translation: "", author: "苏轼", source: "《临江仙》", lang: "zh",
+              tags: ["人生", "旅行", "豁达", "看淡", "过客", "从容"] },
+            { text: "行到水穷处，坐看云起时。", translation: "", author: "王维", source: "《终南别业》", lang: "zh",
+              tags: ["困境", "豁达", "平静", "希望", "转折", "顺其自然", "困难"] },
+            { text: "海纳百川，有容乃大。", translation: "", author: "林则徐", source: "", lang: "zh",
+              tags: ["包容", "心胸", "宽容", "气度", "格局", "接纳"] },
+            { text: "此心安处是吾乡。", translation: "", author: "苏轼", source: "《定风波》", lang: "zh",
+              tags: ["心安", "归属", "平静", "家", "心灵", "安宁", "踏实"] },
+            { text: "不以物喜，不以己悲。", translation: "", author: "范仲淹", source: "《岳阳楼记》", lang: "zh",
+              tags: ["平静", "情绪", "超然", "得失", "淡定", "心态"] },
+            { text: "道虽迩，不行不至；事虽小，不为不成。", translation: "", author: "荀子", source: "《修身》", lang: "zh",
+              tags: ["行动", "坚持", "实践", "努力", "小事", "开始"] },
+            { text: "不畏浮云遮望眼，自缘身在最高层。", translation: "", author: "王安石", source: "《登飞来峰》", lang: "zh",
+              tags: ["眼界", "高度", "格局", "困惑", "视野", "迷茫", "方向"] },
+        ];
+
+        // ═══════════════════════════════════
+        //  星空画布
+        // ═══════════════════════════════════
+        const canvas = document.getElementById('starsCanvas');
+        const ctx = canvas.getContext('2d');
+        const card = document.getElementById('card');
+        let starsArr = [];
+        let shootingStars = [];
+        let time = 0;
+        let canvasW, canvasH;
+
+        let searchPhase = 'idle';
+        let searchStart = 0;
+        let chosenStarIndex = -1;
+        let convergeTarget = { x: 0, y: 0 };
+
+        function resizeCanvas() {
+            canvasW = canvas.width = window.innerWidth;
+            canvasH = canvas.height = window.innerHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', () => { resizeCanvas(); initStarsArr(); });
+
+        function initStarsArr() {
+            starsArr = [];
+            const count = Math.floor((canvasW * canvasH) / 1500);
+            for (let i = 0; i < count; i++) {
+                starsArr.push({
+                    homeX: Math.random() * canvasW,
+                    homeY: Math.random() * canvasH,
+                    x: 0, y: 0,
+                    r: Math.random() * 1.5 + 0.3,
+                    baseAlpha: Math.random() * 0.5 + 0.15,
+                    alpha: 0,
+                    phase: Math.random() * Math.PI * 2,
+                    speed: Math.random() * 0.008 + 0.004,
+                    twinkleAmt: Math.random() * 0.4 + 0.2,
+                    driftX: 0, driftY: 0,
+                    convergeStrength: 0,
+                });
+            }
+            for (const s of starsArr) { s.x = s.homeX; s.y = s.homeY; }
+        }
+
+        function getCardCenter() {
+            const rect = card.getBoundingClientRect();
+            return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+        }
+
+        function drawStarsFrame() {
+            ctx.clearRect(0, 0, canvasW, canvasH);
+            time += 0.016;
+            const now = performance.now();
+
+            for (let i = 0; i < starsArr.length; i++) {
+                const s = starsArr[i];
+                let tx = s.homeX;
+                let ty = s.homeY;
+
+                if (searchPhase === 'converging') {
+                    const elapsed = (now - searchStart) / 2800;
+                    const t = Math.min(elapsed / 0.5, 1);
+                    const ease = 1 - Math.pow(1 - t, 3);
+                    const dx = convergeTarget.x - s.homeX;
+                    const dy = convergeTarget.y - s.homeY;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    const maxDist = Math.max(canvasW, canvasH);
+                    const proximity = 1 - Math.min(dist / maxDist, 1);
+                    if (proximity > 0.15) {
+                        const strength = ease * (0.15 + proximity * 0.85);
+                        tx = s.homeX + dx * strength;
+                        ty = s.homeY + dy * strength;
+                        s.convergeStrength = strength;
+                    }
+                } else if (searchPhase === 'settling' || searchPhase === 'idle') {
+                    if (s.convergeStrength > 0.001) {
+                        s.convergeStrength *= 0.94;
+                        tx = s.homeX + (tx - s.homeX) * 0.94;
+                        ty = s.homeY + (ty - s.homeY) * 0.94;
+                    } else {
+                        s.convergeStrength = 0;
+                        tx = s.homeX; ty = s.homeY;
+                    }
+                }
+
+                s.x += (tx - s.x) * 0.08;
+                s.y += (ty - s.y) * 0.08;
+
+                let brightness = s.baseAlpha + Math.sin(time * s.speed * 60 + s.phase) * s.twinkleAmt;
+                if (searchPhase === 'converging' || s.convergeStrength > 0.01) {
+                    brightness += s.convergeStrength * 0.5;
+                }
+                brightness = Math.max(0.03, Math.min(0.95, brightness));
+
+                // 颜色随汇聚变暖
+                const r = 220 - s.convergeStrength * 40;
+                const g = 220 - s.convergeStrength * 20;
+                const b = 255 - s.convergeStrength * 55;
+
+                ctx.beginPath();
+                ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(${r},${g},${b},${brightness})`;
+                ctx.fill();
+
+                if (brightness > 0.5 && s.r > 0.7) {
+                    const glowR = s.r * (2 + s.convergeStrength * 4);
+                    const glow = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, glowR);
+                    glow.addColorStop(0, `rgba(255,${220 - s.convergeStrength * 30},${180 - s.convergeStrength * 50},${brightness * 0.18})`);
+                    glow.addColorStop(1, 'rgba(255,200,100,0)');
+                    ctx.beginPath();
+                    ctx.arc(s.x, s.y, glowR, 0, Math.PI * 2);
+                    ctx.fillStyle = glow;
+                    ctx.fill();
+                }
+            }
+
+            // 流星
+            const dnow = Date.now();
+            shootingStars = shootingStars.filter(ss => dnow - ss.born < 1200);
+            for (const ss of shootingStars) {
+                const age = (dnow - ss.born) / 1200;
+                const sx = ss.x - age * 500;
+                const sy = ss.y + age * 300;
+                ctx.beginPath();
+                ctx.moveTo(sx, sy);
+                ctx.lineTo(sx - 80 * (1 - age), sy + 50 * (1 - age));
+                ctx.strokeStyle = `rgba(255,255,255,${(1 - age) * 0.4})`;
+                ctx.lineWidth = 1;
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.arc(sx, sy, 1.2, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255,255,255,${(1 - age) * 0.6})`;
+                ctx.fill();
+            }
+
+            if (searchPhase === 'converging') {
+                const elapsed = (now - searchStart) / 2800;
+                const t = Math.min(elapsed / 0.5, 1);
+                const easedT = 1 - Math.pow(1 - t, 3);
+                if (easedT > 0.25) {
+                    const lineAlpha = (easedT - 0.25) * 0.2;
+                    const cx = convergeTarget.x;
+                    const cy = convergeTarget.y;
+                    const lines = 6;
+                    for (let l = 0; l < lines; l++) {
+                        const si = Math.floor((starsArr.length / lines) * l + Math.sin(time * 3 + l) * 15);
+                        const s = starsArr[Math.abs(si) % starsArr.length];
+                        if (s.convergeStrength > 0.45) {
+                            ctx.beginPath();
+                            ctx.moveTo(s.x, s.y);
+                            ctx.lineTo(cx, cy);
+                            ctx.strokeStyle = `rgba(255,220,180,${lineAlpha * s.convergeStrength})`;
+                            ctx.lineWidth = 0.5;
+                            ctx.stroke();
+                        }
+                    }
+                }
+            }
+
+            requestAnimationFrame(drawStarsFrame);
+        }
+
+        function spawnShootingStar() {
+            shootingStars.push({
+                x: Math.random() * canvasW * 0.8 + canvasW * 0.1,
+                y: Math.random() * canvasH * 0.35,
+                born: Date.now()
+            });
+        }
+
+        initStarsArr();
+        drawStarsFrame();
+
+        setInterval(() => { if (Math.random() < 0.35 && searchPhase === 'idle') spawnShootingStar(); }, 9000);
+        setTimeout(spawnShootingStar, 2500);
+
+        // ═══════════════════════════════════
+        //  星空尘埃 / 光点 工具函数
+        // ═══════════════════════════════════
+        function spawnStarDust(x, y, count = 40, color = '255,220,150') {
+            for (let i = 0; i < count; i++) {
+                const p = document.createElement('div');
+                p.className = 'star-dust';
+                const angle = Math.random() * Math.PI * 2;
+                const dist = 20 + Math.random() * 130;
+                const size = 1 + Math.random() * 3;
+                p.style.cssText = `
+                    left: ${x}px; top: ${y}px;
+                    width: ${size}px; height: ${size}px;
+                    background: radial-gradient(circle, rgba(${color},1) 0%, rgba(${color},0.4) 60%, transparent);
+                    --ddx: ${Math.cos(angle) * dist}px;
+                    --ddy: ${Math.sin(angle) * dist}px;
+                    --dust-dur: ${1.2 + Math.random() * 2}s;
+                `;
+                document.body.appendChild(p);
+                setTimeout(() => p.remove(), 3300);
+            }
+        }
+
+        function spawnFloatingLights(fromX, fromY, targetX, targetY, count = 20) {
+            for (let i = 0; i < count; i++) {
+                const light = document.createElement('div');
+                light.className = 'floating-light';
+                const size = 2 + Math.random() * 5;
+                const dx = targetX - fromX + (Math.random() - 0.5) * 120;
+                const dy = targetY - fromY + (Math.random() - 0.5) * 80 - 40;
+                light.style.cssText = `
+                    left: ${fromX}px; top: ${fromY}px;
+                    width: ${size}px; height: ${size}px;
+                    --fl-dur: ${1.4 + Math.random() * 1.8}s;
+                    --fl-delay: ${Math.random() * 0.5}s;
+                    --fl-x: ${dx}px; --fl-y: ${dy}px;
+                `;
+                document.body.appendChild(light);
+                setTimeout(() => light.remove(), 4000);
+            }
+        }
+
+        function spawnAnswerSparks(x, y, count = 30) {
+            for (let i = 0; i < count; i++) {
+                const p = document.createElement('div');
+                p.className = 'answer-spark';
+                const angle = Math.random() * Math.PI * 2;
+                const dist = 30 + Math.random() * 140;
+                const size = 1.5 + Math.random() * 4;
+                p.style.cssText = `
+                    left: ${x}px; top: ${y}px;
+                    width: ${size}px; height: ${size}px;
+                    --as-dur: ${1.5 + Math.random() * 2.5}s;
+                    --as-delay: ${Math.random() * 0.6}s;
+                    --as-x: ${Math.cos(angle) * dist}px;
+                    --as-y: ${Math.sin(angle) * dist}px;
+                `;
+                document.body.appendChild(p);
+                setTimeout(() => p.remove(), 4200);
+            }
+        }
+
+        // ═══════════════════════════════════
+        //  日期
+        // ═══════════════════════════════════
+        function formatDate() {
+            const today = new Date();
+            const y = today.getFullYear();
+            const m = String(today.getMonth() + 1).padStart(2, '0');
+            const d = String(today.getDate()).padStart(2, '0');
+            const wd = ['日', '一', '二', '三', '四', '五', '六'][today.getDay()];
+            return `${y} · ${m} · ${d}  星期${wd}`;
+        }
+        document.getElementById('date').textContent = formatDate();
+
+        // ═══════════════════════════════════
+        //  每日固定索引
+        // ═══════════════════════════════════
+        function getDailyIndex() {
+            const today = new Date();
+            const d = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
+            let h = 0;
+            for (let i = 0; i < d.length; i++) { h = ((h << 5) - h) + d.charCodeAt(i); h |= 0; }
+            return Math.abs(h) % quotes.length;
+        }
+
+        // ═══════════════════════════════════
+        //  设置语录内容
+        // ═══════════════════════════════════
+        function setQuoteContent(index) {
+            const q = quotes[index];
+            document.getElementById('quote').textContent = q.text;
+            document.getElementById('quote').className = 'quote' + (q.lang === 'en' ? ' en' : '');
+            const transEl = document.getElementById('translation');
+            if (q.lang === 'en' && q.translation) {
+                transEl.textContent = q.translation;
+                transEl.style.display = 'block';
+            } else {
+                transEl.textContent = '';
+                transEl.style.display = 'none';
+            }
+            document.getElementById('author').textContent = '— ' + q.author;
+            document.getElementById('source').textContent = q.source || '';
+        }
+
+        // ═══════════════════════════════════
+        //  关键词匹配：从用户问题匹配语录
+        // ═══════════════════════════════════
+        function matchQuote(question) {
+            const qLower = question.toLowerCase().trim();
+            if (!qLower) return Math.floor(Math.random() * quotes.length);
+
+            // 扩展关键词映射
+            const keywordMap = {
+                '爱': ['爱', '爱情', '感情', '喜欢', '关系'],
+                '工作': ['工作', '事业', '行动', '坚持', '努力', '卓越', '习惯'],
+                '迷茫': ['迷茫', '困惑', '方向', '人生', '意义', '未来', '视野'],
+                '焦虑': ['焦虑', '担忧', '恐惧', '烦恼', '情绪', '内心', '平静', '当下', '痛苦'],
+                '孤独': ['孤独', '寂寞', '归属', '心安', '家'],
+                '失败': ['失败', '挫折', '困难', '困境', '不完美', '裂痕', '逆境', '希望'],
+                '改变': ['改变', '成长', '进步', '习惯', '自律', '开始'],
+                '时间': ['时间', '生命', '珍惜', '浪费', '人生'],
+                '知识': ['知识', '智慧', '学习', '无知', '谦虚', '成长'],
+                '人生': ['人生', '意义', '活着', '价值', '目标', '审视', '反思'],
+                '内心': ['内心', '心', '平静', '情绪', '掌控', '信念', '思想', '自我'],
+                '放下': ['放下', '过去', '得失', '包容', '看淡', '从容', '豁达'],
+                '简单': ['简单', '简约', '生活', '极简', '纯粹'],
+                '行动': ['行动', '实践', '努力', '坚持', '开始', '自律'],
+                '自我': ['自我', '独立', '自由', '定义', '认识', '自知'],
+                '希望': ['希望', '光明', '未来', '改变', '机会', '困难'],
+                '关系': ['关系', '爱', '包容', '宽容', '接纳'],
+                '认知': ['认知', '视角', '真相', '观点', '事实', '偏见'],
+                '痛苦': ['痛苦', '忍受', '苦难', '焦虑', '担忧', '恐惧'],
+                '力量': ['力量', '强大', '勇气', '内心', '掌控'],
+                '格局': ['格局', '眼界', '高度', '气度', '视野', '心胸'],
+                '当下': ['当下', '现在', '此刻', '专注', '焦虑', '过去', '未来'],
+                '慢': ['行动', '坚持', '努力', '开始'],
+                '担心': ['焦虑', '担忧', '恐惧', '内心', '平静'],
+                '害怕': ['恐惧', '焦虑', '担忧', '勇气', '力量'],
+            };
+
+            // 提取问题中的关键词
+            let matchedKeywords = new Set();
+            for (const [primary, synonyms] of Object.entries(keywordMap)) {
+                for (const syn of synonyms) {
+                    if (qLower.includes(syn)) {
+                        matchedKeywords.add(primary);
+                        break;
+                    }
+                }
+            }
+
+            // 如果没有匹配到任何关键词，随机选一个
+            if (matchedKeywords.size === 0) {
+                // 尝试模糊匹配——检查是否有任何语录tag出现在问题中
+                let bestScore = -1;
+                let bestIndex = 0;
+                for (let i = 0; i < quotes.length; i++) {
+                    let score = 0;
+                    for (const tag of quotes[i].tags) {
+                        if (qLower.includes(tag.toLowerCase())) {
+                            score += 2;
+                        }
+                        // 部分匹配
+                        for (let j = 0; j < tag.length - 1; j++) {
+                            const sub = tag.substring(j, Math.min(j + 3, tag.length));
+                            if (sub.length >= 2 && qLower.includes(sub.toLowerCase())) {
+                                score += 0.5;
+                            }
+                        }
+                    }
+                    if (score > bestScore) {
+                        bestScore = score;
+                        bestIndex = i;
+                    }
+                }
+                return bestScore > 0.5 ? bestIndex : Math.floor(Math.random() * quotes.length);
+            }
+
+            // 对所有语录按匹配关键词数量打分
+            let scored = quotes.map((q, i) => {
+                let score = 0;
+                for (const kw of matchedKeywords) {
+                    const synonyms = keywordMap[kw] || [kw];
+                    for (const tag of q.tags) {
+                        if (synonyms.includes(tag)) score += 3;
+                        // 部分匹配也加分
+                        for (const syn of synonyms) {
+                            if (tag.includes(syn) || syn.includes(tag)) score += 1.5;
+                        }
+                    }
+                }
+                return { index: i, score };
+            });
+
+            scored.sort((a, b) => b.score - a.score);
+
+            // 如果最高分太低，也随机选
+            if (scored[0].score < 2) {
+                return Math.floor(Math.random() * quotes.length);
+            }
+
+            // 从得分最高的前几个中随机选一个（增加多样性）"""
+            const topN = scored.filter(s => s.score >= scored[0].score * 0.7);
+            return topN[Math.floor(Math.random() * topN.length)].index;
+        }
+
+        // ═══════════════════════════════════
+        //  DOM引用
+        // ═══════════════════════════════════
+        const btn = document.getElementById('refreshBtn');
+        const quoteEl = document.getElementById('quote');
+        const transEl = document.getElementById('translation');
+        const authorEl = document.getElementById('author');
+        const sourceEl = document.getElementById('source');
+        const quoteMark = document.getElementById('quoteMark');
+        const quoteStage = document.getElementById('quoteStage');
+        const divLineL = document.getElementById('divLineL');
+        const divLineR = document.getElementById('divLineR');
+        const divDiamond = document.getElementById('divDiamond');
+        const hintBottom = document.getElementById('hintBottom');
+        const answerHint = document.getElementById('answerHint');
+        const questionPanel = document.getElementById('questionPanel');
+        const questionInput = document.getElementById('questionInput');
+        const inputUnderline = document.getElementById('inputUnderline');
+
+        let isAnimating = false;
+        let lastAnswerIndex = -1; // 跟踪回答用的语录索引
+
+        // ═══════════════════════════════════
+        //  初始进入动画：卡片缓缓展现
+        // ═══════════════════════════════════
+        function entranceAnimation() {
+            setTimeout(() => {
+                card.classList.remove('entering');
+                card.classList.add('visible');
+            }, 300);
+
+            // 卡片出现后，右侧面板延迟滑入
+            setTimeout(() => {
+                questionPanel.classList.add('visible');
+            }, 1800);
+        }
+
+        // ═══════════════════════════════════
+        //  ●●● 主仪式：星海寻言 ●●●
+        // ═══════════════════════════════════
+        btn.addEventListener('click', function(e) {
+            if (isAnimating) return;
+            isAnimating = true;
+            answerHint.classList.remove('show');
+            answerHint.textContent = '';
+
+            const btnRect = btn.getBoundingClientRect();
+            const btnCX = btnRect.left + btnRect.width / 2;
+            const btnCY = btnRect.top + btnRect.height / 2;
+            const cardCenter = getCardCenter();
+
+            let newIndex;
+            do {
+                newIndex = Math.floor(Math.random() * quotes.length);
+            } while (quotes.length > 1 && newIndex === getDailyIndex() && Math.random() > 0.25);
+            lastAnswerIndex = newIndex;
+
+            // ── 涟漪 ──
+            const ripple = document.createElement('span');
+            ripple.className = 'ripple';
+            const size = Math.max(btnRect.width, btnRect.height);
+            ripple.style.width = ripple.style.height = size + 'px';
+            ripple.style.left = (e.clientX - btnRect.left - size / 2) + 'px';
+            ripple.style.top = (e.clientY - btnRect.top - size / 2) + 'px';
+            btn.appendChild(ripple);
+            setTimeout(() => ripple.remove(), 1600);
+
+            // ── 卡片开始搜寻呼吸动画 ──
+            btn.classList.add('searching');
+            btn.textContent = '✦ 正在搜寻...';
+            card.classList.add('searching-card');
+
+            // ── 星空汇聚 ──
+            searchPhase = 'converging';
+            searchStart = performance.now();
+            convergeTarget = cardCenter;
+
+            // 文字淡出
+            [quoteEl, transEl, authorEl, sourceEl].forEach(el => {
+                el.style.opacity = '0';
+                el.style.transform = 'translateY(8px)';
+                el.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+            });
+            quoteMark.classList.remove('glowing');
+            card.classList.remove('illuminated');
+            divLineL.style.background = 'rgba(255,255,255,0.03)';
+            divLineR.style.background = 'rgba(255,255,255,0.03)';
+            divDiamond.style.background = 'rgba(255,255,255,0.06)';
+            hintBottom.style.color = 'rgba(255,255,255,0.05)';
+
+            // 选中星
+            let bestStar = 0;
+            let bestDist = Infinity;
+            for (let i = 0; i < starsArr.length; i++) {
+                const dx = starsArr[i].homeX - cardCenter.x;
+                const dy = starsArr[i].homeY - cardCenter.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                const cardW = card.getBoundingClientRect().width;
+                if (dist < cardW && dist < bestDist) { bestDist = dist; bestStar = i; }
+            }
+            chosenStarIndex = bestStar;
+
+            // ── Phase 2: 选中星绽放 ──
+            setTimeout(() => {
+                searchPhase = 'chosen';
+                card.classList.remove('searching-card');
+
+                const cs = starsArr[chosenStarIndex];
+                const sx = cs ? cs.x : cardCenter.x;
+                const sy = cs ? cs.y : cardCenter.y;
+
+                spawnFloatingLights(btnCX, btnCY, cardCenter.x, cardCenter.y);
+                spawnStarDust(sx, sy);
+
+                card.classList.add('illuminated');
+
+                setTimeout(() => {
+                    spawnStarDust(cardCenter.x, cardCenter.y, 20);
+
+                    setQuoteContent(newIndex);
+                    quoteMark.classList.add('glowing');
+
+                    [quoteEl, transEl, authorEl, sourceEl].forEach(el => {
+                        el.style.transition = 'opacity 0.9s ease, transform 0.9s ease, color 1.2s ease, text-shadow 1.2s ease';
+                    });
+
+                    setTimeout(() => {
+                        quoteEl.classList.add('glowing-text');
+                        transEl.classList.add('glowing-text');
+                        quoteEl.style.opacity = '1';
+                        quoteEl.style.transform = 'translateY(0)';
+                    }, 150);
+
+                    setTimeout(() => {
+                        if (transEl.style.display !== 'none') {
+                            transEl.style.opacity = '1';
+                            transEl.style.transform = 'translateY(0)';
+                        }
+                    }, 400);
+
+                    setTimeout(() => {
+                        authorEl.style.opacity = '1';
+                        authorEl.style.transform = 'translateY(0)';
+                        sourceEl.style.opacity = '1';
+                        sourceEl.style.transform = 'translateY(0)';
+                    }, 700);
+
+                    setTimeout(() => {
+                        quoteEl.classList.remove('glowing-text');
+                        transEl.classList.remove('glowing-text');
+                    }, 2000);
+
+                    setTimeout(() => {
+                        searchPhase = 'settling';
+                        card.classList.remove('illuminated');
+                        quoteMark.classList.remove('glowing');
+                        divLineL.style.background = 'rgba(255,255,255,0.1)';
+                        divLineR.style.background = 'rgba(255,255,255,0.1)';
+                        divDiamond.style.background = 'rgba(255,255,255,0.2)';
+                        hintBottom.style.color = 'rgba(255,255,255,0.12)';
+                        btn.classList.remove('searching');
+                        btn.textContent = '✦ 宇宙赠言';
+                        isAnimating = false;
+                        searchPhase = 'idle';
+
+                        if (Math.random() < 0.3) setTimeout(spawnShootingStar, 400);
+                    }, 600);
+
+                }, 350);
+            }, 1400);
+        });
+
+        // ═══════════════════════════════════
+        //  ●●● 提问互动 ●●●
+        // ═══════════════════════════════════
+        questionInput.addEventListener('focus', () => {
+            inputUnderline.classList.add('active');
+        });
+        questionInput.addEventListener('blur', () => {
+            if (!questionInput.value.trim()) {
+                inputUnderline.classList.remove('active');
+            }
+        });
+
+        questionInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                const question = questionInput.value.trim();
+                if (!question || isAnimating) return;
+
+                e.preventDefault();
+                askUniverse(question);
+            }
+        });
+
+        async function askUniverse(question) {
+            isAnimating = true;
+            answerHint.classList.remove('show');
+
+            const inputRect = questionInput.getBoundingClientRect();
+            const inputCX = inputRect.left + inputRect.width / 2;
+            const inputCY = inputRect.top + inputRect.height / 2;
+
+            const cardCenter = getCardCenter();
+
+            // ── 输入框进入搜寻态 ──
+            questionInput.classList.add('searching-input');
+            questionPanel.classList.add('answering');
+            questionInput.disabled = true;
+
+            // ── 卡片开始呼吸 ──
+            card.classList.add('searching-card');
+            btn.classList.add('searching');
+            btn.textContent = '✦ 宇宙聆听中...';
+
+            // ── 星空轻微汇聚 ──
+            searchPhase = 'converging';
+            searchStart = performance.now();
+            convergeTarget = cardCenter;
+
+            // 文字淡出
+            [quoteEl, transEl, authorEl, sourceEl].forEach(el => {
+                el.style.opacity = '0';
+                el.style.transform = 'translateY(8px)';
+                el.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+            });
+            quoteMark.classList.remove('glowing');
+            card.classList.remove('illuminated');
+
+            // ── 匹配 ──
+            const matchIndex = matchQuote(question);
+            lastAnswerIndex = matchIndex;
+
+            // ── 模拟宇宙搜索延迟 ──
+            await new Promise(r => setTimeout(r, 1800));
+
+            // ── 星光从输入框飞向卡片 ──
+            spawnFloatingLights(inputCX, inputCY, cardCenter.x, cardCenter.y, 30);
+
+            // ── 在输入框处绽放蓝色尘埃 ──
+            spawnStarDust(inputCX, inputCY, 25, '150,200,255');
+
+            // ── 选中星位置绽放 ──
+            let bestStar = 0;
+            let bestDist = Infinity;
+            for (let i = 0; i < starsArr.length; i++) {
+                const dx = starsArr[i].homeX - cardCenter.x;
+                const dy = starsArr[i].homeY - cardCenter.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                const cardW = card.getBoundingClientRect().width;
+                if (dist < cardW && dist < bestDist) { bestDist = dist; bestStar = i; }
+            }
+            const cs = starsArr[bestStar];
+            spawnStarDust(cs ? cs.x : cardCenter.x, cs ? cs.y : cardCenter.y, 35, '150,200,255');
+
+            // ── 卡片被蓝色照亮 ──
+            card.classList.add('illuminated');
+            card.classList.remove('searching-card');
+            card.style.borderColor = 'rgba(150, 200, 255, 0.2)';
+            card.style.boxShadow = `
+                0 0 0 1px rgba(255, 255, 255, 0.05),
+                0 0 120px rgba(150, 190, 255, 0.18),
+                0 0 200px rgba(130, 170, 255, 0.06),
+                0 40px 80px rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.06)
+            `;
+
+            setTimeout(() => {
+                // 文字区绽放蓝色星光
+                spawnAnswerSparks(cardCenter.x, cardCenter.y);
+                spawnStarDust(cardCenter.x, cardCenter.y, 20, '150,200,255');
+
+                setQuoteContent(matchIndex);
+                quoteMark.classList.add('glowing');
+                quoteMark.style.color = 'rgba(150, 210, 255, 0.1)';
+
+                [quoteEl, transEl, authorEl, sourceEl].forEach(el => {
+                    el.style.transition = 'opacity 0.9s ease, transform 0.9s ease, color 1.2s ease, text-shadow 1.2s ease';
+                });
+
+                // 淡入文字
+                setTimeout(() => {
+                    quoteEl.classList.add('glowing-text');
+                    transEl.classList.add('glowing-text');
+                    quoteEl.style.opacity = '1';
+                    quoteEl.style.transform = 'translateY(0)';
+                }, 150);
+
+                setTimeout(() => {
+                    if (transEl.style.display !== 'none') {
+                        transEl.style.opacity = '1';
+                        transEl.style.transform = 'translateY(0)';
+                    }
+                }, 400);
+
+                setTimeout(() => {
+                    authorEl.style.opacity = '1';
+                    authorEl.style.transform = 'translateY(0)';
+                    sourceEl.style.opacity = '1';
+                    sourceEl.style.transform = 'translateY(0)';
+                }, 700);
+
+                // ── 显示回答提示 ──
+                setTimeout(() => {
+                    answerHint.textContent = '这是宇宙深处闪烁对你的回答';
+                    answerHint.classList.add('show');
+                }, 1000);
+
+                // ── 恢复 ──
+                setTimeout(() => {
+                    searchPhase = 'settling';
+                    card.classList.remove('illuminated');
+                    card.style.borderColor = 'rgba(255, 255, 255, 0.06)';
+                    card.style.boxShadow = `
+                        0 0 0 1px rgba(255, 255, 255, 0.02),
+                        0 40px 80px rgba(0, 0, 0, 0.5),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.02)
+                    `;
+                    quoteMark.classList.remove('glowing');
+                    quoteMark.style.color = 'rgba(255, 255, 255, 0.025)';
+                    divLineL.style.background = 'rgba(255,255,255,0.1)';
+                    divLineR.style.background = 'rgba(255,255,255,0.1)';
+                    divDiamond.style.background = 'rgba(255,255,255,0.2)';
+                    hintBottom.style.color = 'rgba(255,255,255,0.12)';
+                    btn.classList.remove('searching');
+                    btn.textContent = '✦ 宇宙赠言';
+                    questionInput.classList.remove('searching-input');
+                    questionPanel.classList.remove('answering');
+                    questionInput.disabled = false;
+                    questionInput.value = '';
+                    questionInput.focus();
+                    inputUnderline.classList.add('active');
+                    isAnimating = false;
+                    searchPhase = 'idle';
+
+                    if (Math.random() < 0.4) setTimeout(spawnShootingStar, 500);
+                }, 800);
+
+            }, 400);
+        }
+
+        // ═══════════════════════════════════
+        //  键盘：空格→宇宙赠言，其他键→聚焦提问
+        // ═══════════════════════════════════
+        document.addEventListener('keydown', function(e) {
+            // 如果焦点在输入框里，不拦截
+            if (document.activeElement === questionInput) return;
+
+            if (e.code === 'Space' && !isAnimating) {
+                e.preventDefault();
+                btn.click();
+            }
+            // 任意字母键聚焦到提问框
+            if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey && !isAnimating) {
+                questionInput.focus();
+            }
+        });
+
+        // ═══════════════════════════════════
+        //  卡片3D微倾
+        // ═══════════════════════════════════
+        document.addEventListener('mousemove', function(e) {
+            const cx = window.innerWidth / 2;
+            const cy = window.innerHeight / 2;
+            const dx = (e.clientX - cx) / cx;
+            const dy = (e.clientY - cy) / cy;
+            card.style.transform = `perspective(800px) rotateX(${dy * -2.5}deg) rotateY(${dx * 2.5}deg)`;
+            card.style.transition = 'transform 0.6s ease-out, box-shadow 1.5s ease, border-color 0.8s ease, opacity 0.8s ease';
+        });
+
+        // ═══════════════════════════════════
+        //  初始化
+        // ═══════════════════════════════════
+        setQuoteContent(getDailyIndex());
+        entranceAnimation();
+
+        console.log('🌌 宇宙赠言 — 写下一个问题，星辰将为你作答。');
+        console.log('💡 试试在右侧输入框中写下你的困惑，然后按回车——');
+    </script>
+</body>
+</html>
