@@ -7,70 +7,26 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            width: 100vw; height: 100vh;
-            overflow: hidden;
+            width: 100vw; height: 100vh; overflow: hidden;
             background: #010006;
             font-family: "PingFang SC", "Noto Serif SC", Georgia, serif;
             cursor: crosshair;
             -webkit-tap-highlight-color: transparent;
             user-select: none;
         }
-        #threeCanvas {
-            position: fixed; top: 0; left: 0;
-            width: 100%; height: 100%; z-index: 1;
-        }
+        #threeCanvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
 
-        .title-overlay {
-            position: fixed; top: 36px; left: 50%;
-            transform: translateX(-50%);
-            z-index: 10; pointer-events: none; text-align: center;
-        }
-        .title-main {
-            font-size: 26px; color: rgba(255,255,255,0.7);
-            letter-spacing: 10px;
-            text-shadow: 0 0 60px rgba(180,150,255,0.35), 0 0 120px rgba(130,180,255,0.18);
-            margin-bottom: 6px;
-        }
-        .title-sub {
-            font-size: 11px; color: rgba(255,255,255,0.25); letter-spacing: 5px;
-        }
+        .title-overlay { position: fixed; top: 36px; left: 50%; transform: translateX(-50%); z-index: 10; pointer-events: none; text-align: center; }
+        .title-main { font-size: 26px; color: rgba(255,255,255,0.7); letter-spacing: 10px; text-shadow: 0 0 60px rgba(180,150,255,0.35), 0 0 120px rgba(130,180,255,0.18); margin-bottom: 6px; }
+        .title-sub { font-size: 11px; color: rgba(255,255,255,0.25); letter-spacing: 5px; }
 
-        .status-bar {
-            position: fixed; bottom: 36px; left: 50%;
-            transform: translateX(-50%); z-index: 10;
-            display: flex; align-items: center; gap: 12px;
-            padding: 10px 24px;
-            background: rgba(20,18,40,0.5);
-            backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
-            border-radius: 50px; border: 1px solid rgba(255,255,255,0.05);
-            pointer-events: none;
-        }
-        .status-dot {
-            width: 7px; height: 7px; border-radius: 50%;
-            background: rgba(255,255,255,0.15); transition: all 0.5s ease;
-        }
+        .status-bar { position: fixed; bottom: 36px; left: 50%; transform: translateX(-50%); z-index: 10; display: flex; align-items: center; gap: 12px; padding: 10px 24px; background: rgba(20,18,40,0.5); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); border-radius: 50px; border: 1px solid rgba(255,255,255,0.05); pointer-events: none; }
+        .status-dot { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,0.15); transition: all 0.5s ease; }
         .status-dot.active { background: #7bff8f; box-shadow: 0 0 10px rgba(123,255,143,0.6); }
-        .status-text {
-            font-size: 11px; color: rgba(255,255,255,0.3);
-            letter-spacing: 2px; transition: color 0.5s ease;
-        }
+        .status-text { font-size: 11px; color: rgba(255,255,255,0.3); letter-spacing: 2px; transition: color 0.5s ease; }
 
-        .camera-hint {
-            position: fixed; bottom: 110px; left: 50%;
-            transform: translateX(-50%); z-index: 10;
-            padding: 13px 28px;
-            background: rgba(160,120,255,0.1);
-            border: 1px solid rgba(180,150,255,0.22);
-            border-radius: 50px;
-            color: rgba(255,255,255,0.65); font-size: 13px; letter-spacing: 2px;
-            cursor: pointer; pointer-events: all;
-            transition: all 0.5s ease; font-family: inherit;
-        }
-        .camera-hint:hover {
-            background: rgba(160,120,255,0.2);
-            border-color: rgba(200,170,255,0.38);
-            box-shadow: 0 0 40px rgba(150,110,255,0.18); color: #fff;
-        }
+        .camera-hint { position: fixed; bottom: 110px; left: 50%; transform: translateX(-50%); z-index: 10; padding: 13px 28px; background: rgba(160,120,255,0.1); border: 1px solid rgba(180,150,255,0.22); border-radius: 50px; color: rgba(255,255,255,0.65); font-size: 13px; letter-spacing: 2px; cursor: pointer; pointer-events: all; transition: all 0.5s ease; font-family: inherit; }
+        .camera-hint:hover { background: rgba(160,120,255,0.2); border-color: rgba(200,170,255,0.38); box-shadow: 0 0 40px rgba(150,110,255,0.18); color: #fff; }
         .camera-hint.hidden { opacity: 0; pointer-events: none; transform: translateX(-50%) translateY(16px); }
 
         @media (max-width: 768px) {
@@ -95,7 +51,6 @@
     </div>
 
     <button class="camera-hint" id="cameraHint">✦ Enable Star Bridge</button>
-
     <video id="webcamVideo" style="display:none" playsinline></video>
 
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3.1675466862/camera_utils.js" crossorigin="anonymous"></script>
@@ -116,6 +71,8 @@
         import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
         import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 
+        console.log('%c💜💙 Touch the Stars %cinitializing...', 'font-size:16px', 'font-size:12px');
+
         // ═══════ DOM ═══════
         const statusDotLeft  = document.getElementById('statusDotLeft');
         const statusDotRight = document.getElementById('statusDotRight');
@@ -126,11 +83,9 @@
         // ═══════ State ═══════
         let mediaPipeReady = false;
         let cameraActive   = false;
-        let leftHandWorld  = null;
-        let rightHandWorld = null;
-        let leftHandRaw    = null;
-        let rightHandRaw   = null;
-        const HAND_SMOOTH  = 0.22;
+        let leftHandWorld  = null, rightHandWorld = null;
+        let leftHandRaw    = null, rightHandRaw   = null;
+        const HAND_SMOOTH = 0.22;
 
         // ═══════ Three.js Init ═══════
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -142,7 +97,7 @@
         document.body.appendChild(renderer.domElement);
         renderer.domElement.id = 'threeCanvas';
 
-        const scene = new THREE.Scene();
+        const scene  = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(68, window.innerWidth / window.innerHeight, 0.4, 90);
         camera.position.set(0, 0.5, 20);
         camera.lookAt(0, 0, 0);
@@ -160,17 +115,17 @@
         }, { passive: true });
 
         // ═══════ Glow Texture Factory ═══════
-        function createGlowTexture(r, g, b, innerAlpha = 0.92, size = 128) {
+        function createGlowTexture(r, g, b, innerAlpha, size) {
             const canvas = document.createElement('canvas');
             canvas.width = size; canvas.height = size;
             const ctx = canvas.getContext('2d');
             const half = size / 2;
             const grad = ctx.createRadialGradient(half, half, 0, half, half, half);
             grad.addColorStop(0,    `rgba(${r},${g},${b},${innerAlpha})`);
-            grad.addColorStop(0.08, `rgba(${r},${g},${b},${innerAlpha * 0.9})`);
-            grad.addColorStop(0.25, `rgba(${r},${g},${b},${innerAlpha * 0.55})`);
-            grad.addColorStop(0.5,  `rgba(${r},${g},${b},${innerAlpha * 0.15})`);
-            grad.addColorStop(0.75, `rgba(${r},${g},${b},0.02)`);
+            grad.addColorStop(0.1,  `rgba(${r},${g},${b},${innerAlpha * 0.85})`);
+            grad.addColorStop(0.3,  `rgba(${r},${g},${b},${innerAlpha * 0.45})`);
+            grad.addColorStop(0.55, `rgba(${r},${g},${b},${innerAlpha * 0.1})`);
+            grad.addColorStop(0.8,  `rgba(${r},${g},${b},0.015)`);
             grad.addColorStop(1,    'rgba(0,0,0,0)');
             ctx.fillStyle = grad;
             ctx.fillRect(0, 0, size, size);
@@ -179,47 +134,37 @@
             return tex;
         }
 
-        // Pre-generate all textures
-        const texPurple     = createGlowTexture(170, 50, 250, 0.94);
-        const texBlue       = createGlowTexture(18, 45, 250, 0.94);
-        const texHaloPurple = createGlowTexture(140, 30, 220, 0.45);
-        const texHaloBlue   = createGlowTexture(12, 30, 200, 0.45);
-        const texDeepPurple = createGlowTexture(80, 12, 140, 0.88);
-        const texDeepBlue   = createGlowTexture(6, 14, 90, 0.88);
-        const texWhite      = createGlowTexture(210, 210, 250, 0.82);
-        const texWarmWhite  = createGlowTexture(255, 225, 190, 0.7);
-        const texHandGlow   = createGlowTexture(255, 200, 140, 0.92);
+        const texPurple    = createGlowTexture(170, 50, 250, 0.94, 128);
+        const texBlue      = createGlowTexture(18, 45, 250, 0.94, 128);
+        const texDeepPurple = createGlowTexture(80, 12, 140, 0.88, 128);
+        const texDeepBlue   = createGlowTexture(6, 14, 90, 0.88, 128);
+        const texWhite      = createGlowTexture(210, 210, 250, 0.82, 128);
+        const texWarmWhite  = createGlowTexture(255, 225, 190, 0.7, 128);
+        const texHandGlow   = createGlowTexture(255, 200, 140, 0.92, 128);
+        const texHaloPurple = createGlowTexture(140, 30, 220, 0.35, 128);
+        const texHaloBlue   = createGlowTexture(12, 30, 200, 0.35, 128);
 
-        // ═══════ 1. Deep Starfield ═══════
+        // ═══════ 1. Deep Starfield (sphere shell) ═══════
         function createDeepStarfield() {
-            const count = 2500;
-            const radius = 42;
-            const positions = new Float32Array(count * 3);
-            const colors = new Float32Array(count * 3);
+            const count = 2500, radius = 42;
+            const pos = new Float32Array(count * 3);
+            const col = new Float32Array(count * 3);
             for (let i = 0; i < count; i++) {
                 const theta = Math.random() * Math.PI * 2;
                 const phi   = Math.acos(2 * Math.random() - 1);
                 const r     = radius * (0.78 + Math.random() * 0.35);
-                positions[i * 3]     = Math.sin(phi) * Math.cos(theta) * r;
-                positions[i * 3 + 1] = Math.sin(phi) * Math.sin(theta) * r;
-                positions[i * 3 + 2] = Math.cos(phi) * r;
+                pos[i * 3] = Math.sin(phi) * Math.cos(theta) * r;
+                pos[i * 3 + 1] = Math.sin(phi) * Math.sin(theta) * r;
+                pos[i * 3 + 2] = Math.cos(phi) * r;
                 const rc = Math.random();
-                if (rc < 0.55) {
-                    colors[i * 3] = 0.75; colors[i * 3 + 1] = 0.78; colors[i * 3 + 2] = 0.95;
-                } else if (rc < 0.8) {
-                    colors[i * 3] = 0.5; colors[i * 3 + 1] = 0.55; colors[i * 3 + 2] = 0.9;
-                } else {
-                    colors[i * 3] = 0.6; colors[i * 3 + 1] = 0.45; colors[i * 3 + 2] = 0.85;
-                }
+                if (rc < 0.55) { col[i*3]=0.75; col[i*3+1]=0.78; col[i*3+2]=0.95; }
+                else if (rc < 0.8) { col[i*3]=0.5; col[i*3+1]=0.55; col[i*3+2]=0.9; }
+                else { col[i*3]=0.6; col[i*3+1]=0.45; col[i*3+2]=0.85; }
             }
             const geo = new THREE.BufferGeometry();
-            geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-            geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-            const mat = new THREE.PointsMaterial({
-                size: 0.32, map: texWhite, vertexColors: true,
-                blending: THREE.AdditiveBlending, depthWrite: false,
-                transparent: true, opacity: 0.7, sizeAttenuation: true,
-            });
+            geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+            geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+            const mat = new THREE.PointsMaterial({ size: 0.32, map: texWhite, vertexColors: true, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, opacity: 0.7, sizeAttenuation: true });
             const stars = new THREE.Points(geo, mat);
             stars.renderOrder = 0;
             scene.add(stars);
@@ -229,317 +174,210 @@
         // ═══════ 2. Floating Dust ═══════
         function createFloatingDust() {
             const count = 500;
-            const positions = new Float32Array(count * 3);
-            const colors = new Float32Array(count * 3);
+            const pos = new Float32Array(count * 3);
+            const col = new Float32Array(count * 3);
             const dataArr = [];
             for (let i = 0; i < count; i++) {
-                positions[i * 3]     = (Math.random() - 0.5) * 30;
-                positions[i * 3 + 1] = (Math.random() - 0.5) * 20;
-                positions[i * 3 + 2] = (Math.random() - 0.5) * 14;
-                const rn = Math.random();
-                if (rn < 0.45) {
-                    colors[i * 3] = 0.85; colors[i * 3 + 1] = 0.7; colors[i * 3 + 2] = 0.55;
-                } else if (rn < 0.78) {
-                    colors[i * 3] = 0.55; colors[i * 3 + 1] = 0.5; colors[i * 3 + 2] = 0.88;
-                } else {
-                    colors[i * 3] = 0.72; colors[i * 3 + 1] = 0.48; colors[i * 3 + 2] = 0.95;
-                }
-                dataArr.push({
-                    bx: positions[i * 3], by: positions[i * 3 + 1], bz: positions[i * 3 + 2],
-                    sx: (Math.random() - 0.5) * 0.28, sy: (Math.random() - 0.5) * 0.22,
-                    sz: (Math.random() - 0.5) * 0.18, ph: Math.random() * Math.PI * 2,
-                    amp: 0.08 + Math.random() * 0.55,
-                });
+                pos[i*3]=(Math.random()-0.5)*30; pos[i*3+1]=(Math.random()-0.5)*20; pos[i*3+2]=(Math.random()-0.5)*14;
+                const rn=Math.random();
+                if (rn<0.45){ col[i*3]=0.85;col[i*3+1]=0.7;col[i*3+2]=0.55; }
+                else if(rn<0.78){ col[i*3]=0.55;col[i*3+1]=0.5;col[i*3+2]=0.88; }
+                else{ col[i*3]=0.72;col[i*3+1]=0.48;col[i*3+2]=0.95; }
+                dataArr.push({ bx:pos[i*3],by:pos[i*3+1],bz:pos[i*3+2], sx:(Math.random()-0.5)*0.28,sy:(Math.random()-0.5)*0.22,sz:(Math.random()-0.5)*0.18,ph:Math.random()*Math.PI*2,amp:0.08+Math.random()*0.55 });
             }
             const geo = new THREE.BufferGeometry();
-            geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-            geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-            const mat = new THREE.PointsMaterial({
-                size: 0.16, map: texWarmWhite, vertexColors: true,
-                blending: THREE.AdditiveBlending, depthWrite: false,
-                transparent: true, opacity: 0.5, sizeAttenuation: true,
-            });
+            geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+            geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+            const mat = new THREE.PointsMaterial({ size: 0.16, map: texWarmWhite, vertexColors: true, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, opacity: 0.5, sizeAttenuation: true });
             const dust = new THREE.Points(geo, mat);
             dust.renderOrder = 1;
             scene.add(dust);
-            return { points: dust, dataArr, positions, geo };
+            return { points: dust, dataArr, positions: pos, geo };
         }
 
-        // ═══════ 3. Volumetric 3D Heart ═══════
-        // Uses "revolved heart" approach: revolve the right half of 2D heart around Y axis
-        // Result: looks like a heart silhouette from every horizontal angle
-        function createVolumetricHeart(centerX, texHeart, texHalo, baseRGB) {
-            const numParticles = 5500;
-            const haloCount    = 2000;
-            const totalPts     = numParticles + haloCount;
-            const positions    = new Float32Array(totalPts * 3);
-            const colors       = new Float32Array(totalPts * 3);
-            const sizes        = new Float32Array(totalPts);
-            const basePos      = new Float32Array(totalPts * 3);
-            const scale3D      = 0.42;
-            const zDepth       = 1.0;
-
-            // Precompute heart outline
-            const outlinePts = 360;
-            const outline = [];
-            for (let i = 0; i < outlinePts; i++) {
-                const t = (i / outlinePts) * Math.PI * 2;
-                const rx = 16 * Math.pow(Math.sin(t), 3);
-                const ry = 13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t);
-                outline.push({ x: rx, y: ry });
-            }
-
-            // Find y-range and max width at each y
-            const yMin = -18, yMax = 16;
-            const yBands = 200;
-            const xMaxAtY = new Map(); // y → max |x|
-
-            // For each outline point, record max x for nearby y
-            for (const pt of outline) {
-                const yKey = Math.round(pt.y * (yBands / (yMax - yMin)));
-                const cur = xMaxAtY.get(yKey) || 0;
-                if (Math.abs(pt.x) > cur) xMaxAtY.set(yKey, Math.abs(pt.x));
-            }
-            // Fill in gaps
-            for (let k = 0; k < yBands; k++) {
-                if (!xMaxAtY.has(k)) {
-                    // interpolate from neighbors
-                    let lo = k, hi = k;
-                    while (lo >= 0 && !xMaxAtY.has(lo)) lo--;
-                    while (hi < yBands && !xMaxAtY.has(hi)) hi++;
-                    const loV = lo >= 0 ? xMaxAtY.get(lo) : 0;
-                    const hiV = hi < yBands ? xMaxAtY.get(hi) : 0;
-                    const t2 = (lo >= 0 && hi < yBands) ? (k - lo) / (hi - lo) : 0.5;
-                    xMaxAtY.set(k, loV + (hiV - loV) * (lo >= 0 && hi < yBands ? t2 : 0));
-                }
-            }
-
-            function getHeartRadius(yVal) {
-                const yKey = Math.round(yVal * (yBands / (yMax - yMin)));
-                const clamped = Math.max(0, Math.min(yBands - 1, yKey));
-                return xMaxAtY.get(clamped) || 0;
-            }
-
+        // ═══════ 3. 3D Heart — simple robust approach ═══════
+        function createHeart(centerX, texCore, texHalo, baseRGB) {
+            const coreCount  = 5000;
+            const haloCount  = 1800;
+            const totalPts   = coreCount + haloCount;
+            const positions  = new Float32Array(totalPts * 3);
+            const colors     = new Float32Array(totalPts * 3);
+            const basePos    = new Float32Array(totalPts * 3);
+            const scale      = 0.42;
+            const zDepth     = 0.8;
             const [cr, cg, cb] = baseRGB;
 
-            // Generate volume particles
-            for (let i = 0; i < numParticles; i++) {
-                // Random y within heart range, biased toward center
-                const yRaw = yMin + Math.random() * (yMax - yMin);
-                const maxR = getHeartRadius(yRaw);
-                if (maxR < 0.3) {
-                    // Outside heart — place at nearest valid position
-                    const fallbackY = yMin + Math.random() * 4; // bias to wider bottom area
-                    const fallbackR = getHeartRadius(fallbackY);
-                    const r2 = fallbackR * Math.sqrt(Math.random());
-                    const phi2 = Math.random() * Math.PI * 2;
-                    const x3 = r2 * Math.cos(phi2);
-                    const z3 = r2 * Math.sin(phi2) * zDepth;
-                    basePos[i * 3]     = x3 * scale3D + centerX;
-                    basePos[i * 3 + 1] = fallbackY * scale3D;
-                    basePos[i * 3 + 2] = z3 * scale3D;
-                } else {
-                    const r = maxR * Math.pow(Math.random(), 0.55); // bias toward surface for definition
-                    const phi = Math.random() * Math.PI * 2;
-                    const x3 = r * Math.cos(phi);
-                    const z3 = r * Math.sin(phi) * zDepth;
-                    basePos[i * 3]     = x3 * scale3D + centerX;
-                    basePos[i * 3 + 1] = yRaw * scale3D;
-                    basePos[i * 3 + 2] = z3 * scale3D;
-                }
-                positions[i * 3]     = basePos[i * 3];
-                positions[i * 3 + 1] = basePos[i * 3 + 1];
-                positions[i * 3 + 2] = basePos[i * 3 + 2];
-
-                // Brighter at surface, dimmer inside
-                const distFromSurface = maxR > 0.3 ? 1 - (r / maxR) : 0;
-                const bright = 0.55 + (1 - distFromSurface) * 0.45;
-                colors[i * 3]     = Math.min(1, (cr / 255) * bright + Math.random() * 0.06);
-                colors[i * 3 + 1] = Math.min(1, (cg / 255) * bright + Math.random() * 0.04);
-                colors[i * 3 + 2] = Math.min(1, (cb / 255) * bright + Math.random() * 0.04);
-                sizes[i] = 0.6 + (1 - distFromSurface) * 1.0 + Math.random() * 0.5;
+            // Precompute heart outline for use as mask
+            const outlinePts = 400;
+            const heartX = new Float32Array(outlinePts);
+            const heartY = new Float32Array(outlinePts);
+            for (let i = 0; i < outlinePts; i++) {
+                const t = (i / outlinePts) * Math.PI * 2;
+                heartX[i] = 16 * Math.pow(Math.sin(t), 3);
+                heartY[i] = 13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t);
             }
 
-            // Generate halo/blend particles (beyond heart boundary)
-            for (let i = 0; i < haloCount; i++) {
-                const idx = numParticles + i;
-                const yRaw = yMin + Math.random() * (yMax - yMin);
-                const maxR = getHeartRadius(yRaw);
-                const extR = maxR > 0.2 ? maxR * (1.05 + Math.random() * 0.35) : 0.3 + Math.random() * 1.5;
-                const phi = Math.random() * Math.PI * 2;
-                const x3 = extR * Math.cos(phi);
-                const z3 = extR * Math.sin(phi) * zDepth * 0.8;
-                basePos[idx * 3]     = x3 * scale3D + centerX;
-                basePos[idx * 3 + 1] = yRaw * scale3D;
-                basePos[idx * 3 + 2] = z3 * scale3D;
-                positions[idx * 3]     = basePos[idx * 3];
-                positions[idx * 3 + 1] = basePos[idx * 3 + 1];
-                positions[idx * 3 + 2] = basePos[idx * 3 + 2];
-                const alpha = 0.25 + Math.random() * 0.3;
-                colors[idx * 3]     = (cr / 255) * alpha;
-                colors[idx * 3 + 1] = (cg / 255) * alpha;
-                colors[idx * 3 + 2] = (cb / 255) * alpha;
-                sizes[idx] = 1.2 + Math.random() * 2.5;
+            // Point-in-heart test using ray casting
+            function isInsideHeart(px, py) {
+                let inside = false;
+                for (let i = 0, j = outlinePts - 1; i < outlinePts; j = i++) {
+                    const yi = heartY[i], yj = heartY[j];
+                    if ((yi > py) !== (yj > py)) {
+                        const xi = heartX[i], xj = heartX[j];
+                        if (px < (xj - xi) * (py - yi) / (yj - yi) + xi) inside = !inside;
+                    }
+                }
+                return inside;
+            }
+
+            // Bounding box
+            const xMin = -16, xMax = 16, yMin = -18, yMax = 16;
+
+            // Generate core particles — scatter in bounding box, keep only inside heart
+            let placed = 0;
+            while (placed < coreCount) {
+                const rx = xMin + Math.random() * (xMax - xMin);
+                const ry = yMin + Math.random() * (yMax - yMin);
+                if (isInsideHeart(rx, ry)) {
+                    const rz = (Math.random() - 0.5) * zDepth * 8;
+                    const idx = placed;
+                    basePos[idx*3]=rx*scale+centerX; basePos[idx*3+1]=ry*scale; basePos[idx*3+2]=rz*scale;
+                    positions[idx*3]=basePos[idx*3]; positions[idx*3+1]=basePos[idx*3+1]; positions[idx*3+2]=basePos[idx*3+2];
+                    // Brightness by distance to nearest edge
+                    const xAbs = Math.abs(rx);
+                    const bright = 0.55 + Math.random() * 0.45;
+                    colors[idx*3]=Math.min(1,(cr/255)*bright+Math.random()*0.05);
+                    colors[idx*3+1]=Math.min(1,(cg/255)*bright+Math.random()*0.04);
+                    colors[idx*3+2]=Math.min(1,(cb/255)*bright+Math.random()*0.04);
+                    placed++;
+                }
+            }
+
+            // Generate halo particles — scatter in expanded bounding box, keep only OUTSIDE heart
+            placed = 0;
+            const haloXMin=xMin*1.35,haloXMax=xMax*1.35,haloYMin=yMin*1.35,haloYMax=yMax*1.35;
+            while (placed < haloCount) {
+                const rx = haloXMin + Math.random() * (haloXMax - haloXMin);
+                const ry = haloYMin + Math.random() * (haloYMax - haloYMin);
+                if (!isInsideHeart(rx, ry)) {
+                    const rz = (Math.random() - 0.5) * zDepth * 6;
+                    const idx = coreCount + placed;
+                    basePos[idx*3]=rx*scale+centerX; basePos[idx*3+1]=ry*scale; basePos[idx*3+2]=rz*scale;
+                    positions[idx*3]=basePos[idx*3]; positions[idx*3+1]=basePos[idx*3+1]; positions[idx*3+2]=basePos[idx*3+2];
+                    const alpha=0.2+Math.random()*0.35;
+                    colors[idx*3]=(cr/255)*alpha; colors[idx*3+1]=(cg/255)*alpha; colors[idx*3+2]=(cb/255)*alpha;
+                    placed++;
+                }
             }
 
             const geo = new THREE.BufferGeometry();
             geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
             geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-            geo.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
 
-            // Use custom ShaderMaterial for variable size particles
-            const mat = new THREE.PointsMaterial({
-                size: 0.25, map: texHeart, vertexColors: true,
-                blending: THREE.AdditiveBlending, depthWrite: false,
-                transparent: true, opacity: 0.9, sizeAttenuation: true,
-            });
-
+            const mat = new THREE.PointsMaterial({ size: 0.28, map: texCore, vertexColors: true, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, opacity: 0.92, sizeAttenuation: true });
             const heart = new THREE.Points(geo, mat);
             heart.renderOrder = 2;
             scene.add(heart);
 
-            return { points: heart, geo, positions, basePos, colors, sizes, centerX, count: totalPts, numParticles, haloCount, scale3D };
+            return { points: heart, geo, positions, basePos, colors, centerX, count: totalPts, coreCount, haloCount, scale, zDepth };
         }
 
-        // ═══════ 4. Hand Trail System ═══════
-        function createHandTrail(glowColor) {
-            const maxTrail = 80;
-            const positions = new Float32Array(maxTrail * 3);
-            const trailData = []; // { age, pos }
-            for (let i = 0; i < maxTrail; i++) {
-                positions[i * 3] = 0; positions[i * 3 + 1] = -999; positions[i * 3 + 2] = 0;
-            }
+        // ═══════ 4. Hand Trail ═══════
+        function createHandTrail(glowHex) {
+            const maxTrail = 100;
+            const pos = new Float32Array(maxTrail * 3);
+            for (let i = 0; i < maxTrail; i++) { pos[i*3]=0; pos[i*3+1]=-999; pos[i*3+2]=0; }
             const geo = new THREE.BufferGeometry();
-            geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-            const mat = new THREE.PointsMaterial({
-                size: 0.18, map: texHandGlow, vertexColors: false,
-                blending: THREE.AdditiveBlending, depthWrite: false,
-                transparent: true, opacity: 0.85,
-                color: new THREE.Color(glowColor),
-                sizeAttenuation: true,
-            });
+            geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+            const mat = new THREE.PointsMaterial({ size: 0.2, map: texHandGlow, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, opacity: 0.85, color: new THREE.Color(glowHex), sizeAttenuation: true });
             const trail = new THREE.Points(geo, mat);
             trail.renderOrder = 5;
             trail.frustumCulled = false;
             scene.add(trail);
-            return { trail, geo, positions, mat, trailData, maxTrail, glowColor };
+            return { trail, geo, positions: pos, mat, trailData: [], maxTrail };
         }
 
-        // ═══════ 5. Star Bridge System ═══════
-        function createBridgeSystem(tex, baseColor) {
-            const maxParticles = 3000;
-            const positions = new Float32Array(maxParticles * 3);
-            const colors = new Float32Array(maxParticles * 3);
+        // ═══════ 5. Star Bridge ═══════
+        function createBridgeSystem(tex, colorHex) {
+            const maxP = 3000, totalPaths = 22;
+            const pos = new Float32Array(maxP * 3);
+            const col = new Float32Array(maxP * 3);
+            const c = new THREE.Color(colorHex);
             const particles = [];
-            const totalPaths = 22;
-            for (let i = 0; i < maxParticles; i++) {
-                particles.push({
-                    pathIdx: i % totalPaths,
-                    t: Math.random(),
-                    flowSpeed: 0.05 + Math.random() * 0.18,
-                    offX: (Math.random() - 0.5) * 0.7,
-                    offY: (Math.random() - 0.5) * 0.7,
-                    offZ: (Math.random() - 0.5) * 0.7,
-                    phase: Math.random() * Math.PI * 2,
-                    twinkle: 0.4 + Math.random() * 3,
-                });
-                positions[i * 3] = 0; positions[i * 3 + 1] = -999; positions[i * 3 + 2] = 0;
-                colors[i * 3] = baseColor.r; colors[i * 3 + 1] = baseColor.g; colors[i * 3 + 2] = baseColor.b;
+            for (let i = 0; i < maxP; i++) {
+                particles.push({ pathIdx: i % totalPaths, t: Math.random(), flowSpeed: 0.05 + Math.random() * 0.18, offX: (Math.random()-0.5)*0.7, offY: (Math.random()-0.5)*0.7, offZ: (Math.random()-0.5)*0.7, phase: Math.random()*Math.PI*2, twinkle: 0.4 + Math.random()*3 });
+                pos[i*3]=0; pos[i*3+1]=-999; pos[i*3+2]=0;
+                col[i*3]=c.r; col[i*3+1]=c.g; col[i*3+2]=c.b;
             }
             const geo = new THREE.BufferGeometry();
-            geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-            geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+            geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+            geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
             geo.setDrawRange(0, 0);
-            const mat = new THREE.PointsMaterial({
-                size: 0.16, map: tex, vertexColors: true,
-                blending: THREE.AdditiveBlending, depthWrite: false,
-                transparent: true, opacity: 0.85, sizeAttenuation: true,
-            });
+            const mat = new THREE.PointsMaterial({ size: 0.16, map: tex, vertexColors: true, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, opacity: 0.85, sizeAttenuation: true });
             const bridge = new THREE.Points(geo, mat);
             bridge.renderOrder = 3;
             bridge.frustumCulled = false;
             scene.add(bridge);
-            return {
-                bridge, geo, positions, colors, mat, particles, maxParticles, totalPaths,
-                active: false, handPos: new THREE.Vector3(), heartPos: new THREE.Vector3(),
-            };
+            return { bridge, geo, positions: pos, colors: col, mat, particles, maxParticles: maxP, totalPaths, active: false, handPos: new THREE.Vector3(), heartPos: new THREE.Vector3() };
         }
 
         // ═══════ Create All Scene Elements ═══════
+        console.log('  Creating starfield...');
         const starfield    = createDeepStarfield();
+        console.log('  Creating floating dust...');
         const floatingDust = createFloatingDust();
-
-        // Left: purple heart at x=-8, Right: blue heart at x=+8
-        const leftHeart  = createVolumetricHeart(-8.2, texPurple, texHaloPurple, [170, 50, 250]);
-        const rightHeart = createVolumetricHeart(8.2, texBlue, texHaloBlue, [18, 45, 250]);
-
-        const leftTrail  = createHandTrail('#ffb870');
-        const rightTrail = createHandTrail('#ffc880');
-
-        const leftBridge  = createBridgeSystem(texDeepPurple, { r: 90/255, g: 12/255, b: 145/255 });
-        const rightBridge = createBridgeSystem(texDeepBlue,  { r: 6/255,  g: 16/255, b: 95/255 });
-
+        console.log('  Creating left heart (purple)...');
+        const leftHeart    = createHeart(-8.2, texPurple, texHaloPurple, [170, 50, 250]);
+        console.log('  Creating right heart (blue)...');
+        const rightHeart   = createHeart(8.2, texBlue, texHaloBlue, [18, 45, 250]);
+        console.log('  Creating hand trails...');
+        const leftTrail    = createHandTrail('#ffb870');
+        const rightTrail   = createHandTrail('#ffc880');
+        console.log('  Creating star bridges...');
+        const leftBridge   = createBridgeSystem(texDeepPurple, '#5a0c91');
+        const rightBridge  = createBridgeSystem(texDeepBlue, '#06105f');
         leftBridge.heartPos.set(-8.2, 0, 0);
         rightBridge.heartPos.set(8.2, 0, 0);
+        console.log('  Scene elements created ✓');
 
-        // ═══════ Post-Processing (Bloom) ═══════
+        // ═══════ Post-Processing ═══════
         const composer = new EffectComposer(renderer);
         composer.addPass(new RenderPass(scene, camera));
-        const bloomPass = new UnrealBloomPass(
-            new THREE.Vector2(window.innerWidth, window.innerHeight),
-            1.4, 0.35, 0.15
-        );
+        const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.4, 0.35, 0.15);
         composer.addPass(bloomPass);
 
-        // ═══════ Bézier Helper ═══════
-        function quadraticBezier(p0, p1, p2, t) {
+        // ═══════ Bézier helpers ═══════
+        function quadBezier(p0, p1, p2, t) {
             const u = 1 - t;
-            return {
-                x: u * u * p0.x + 2 * u * t * p1.x + t * t * p2.x,
-                y: u * u * p0.y + 2 * u * t * p1.y + t * t * p2.y,
-                z: u * u * p0.z + 2 * u * t * p1.z + t * t * p2.z,
-            };
+            return { x: u*u*p0.x + 2*u*t*p1.x + t*t*p2.x, y: u*u*p0.y + 2*u*t*p1.y + t*t*p2.y, z: u*u*p0.z + 2*u*t*p1.z + t*t*p2.z };
         }
-        function getPathMidpoint(handPos, heartPos, pathIdx, totalPaths) {
-            const mx = (handPos.x + heartPos.x) / 2;
-            const my = (handPos.y + heartPos.y) / 2;
-            const mz = (handPos.z + heartPos.z) / 2;
-            const sx = (pathIdx / totalPaths - 0.5) * 3.0;
-            const sy = 2.0 + (pathIdx % 4) * 1.1;
-            const sz = (pathIdx % 6 - 2.5) * 1.0;
-            return { x: mx + sx, y: my + sy, z: mz + sz };
+        function pathMid(hp, hrt, idx, total) {
+            const mx = (hp.x + hrt.x) / 2, my = (hp.y + hrt.y) / 2, mz = (hp.z + hrt.z) / 2;
+            return { x: mx + (idx/total-0.5)*3.2, y: my + 2.2 + (idx%4)*1.2, z: mz + (idx%6-2.5)*1.1 };
         }
 
         // ═══════ Update Functions ═══════
-        function updateBridgeSystem(sys, handPos, time, dt) {
+        function updateBridge(sys, handPos, time, dt) {
             if (!handPos) {
-                if (sys.active) {
-                    sys.mat.opacity += (0 - sys.mat.opacity) * 3.5 * dt;
-                    if (sys.mat.opacity < 0.015) { sys.active = false; sys.mat.opacity = 0; sys.geo.setDrawRange(0, 0); }
-                }
+                if (sys.active) { sys.mat.opacity += (0 - sys.mat.opacity) * 3.5 * dt; if (sys.mat.opacity < 0.015) { sys.active = false; sys.mat.opacity = 0; sys.geo.setDrawRange(0, 0); } }
                 return;
             }
             sys.active = true;
             sys.mat.opacity += (0.85 - sys.mat.opacity) * 5 * dt;
-
             sys.handPos.lerp(new THREE.Vector3(handPos.x, handPos.y, handPos.z), 1 - Math.exp(-7 * dt));
-
             const hp = sys.handPos, hrt = sys.heartPos;
             let wi = 0;
             for (let i = 0; i < sys.maxParticles; i++) {
                 const p = sys.particles[i];
-                p.t += p.flowSpeed * dt;
-                if (p.t > 1.0) p.t -= 1.0;
-                const mid = getPathMidpoint(hp, hrt, p.pathIdx, sys.totalPaths);
-                const pt = quadraticBezier(hp, mid, hrt, p.t);
+                p.t += p.flowSpeed * dt; if (p.t > 1.0) p.t -= 1.0;
+                const mid = pathMid(hp, hrt, p.pathIdx, sys.totalPaths);
+                const pt = quadBezier(hp, mid, hrt, p.t);
                 const tw = 0.5 + 0.5 * Math.sin(time * p.twinkle * 7 + p.phase);
-                sys.positions[wi]     = pt.x + p.offX;
-                sys.positions[wi + 1] = pt.y + p.offY;
-                sys.positions[wi + 2] = pt.z + p.offZ;
-                const bright = 0.5 + tw * 0.5;
-                sys.colors[wi]     = Math.min(1, sys.colors[wi] * 0.88 + bright * 0.12);
-                sys.colors[wi + 1] = Math.min(1, sys.colors[wi + 1] * 0.88 + bright * 0.12);
-                sys.colors[wi + 2] = Math.min(1, sys.colors[wi + 2] * 0.88 + bright * 0.12);
+                sys.positions[wi] = pt.x + p.offX; sys.positions[wi+1] = pt.y + p.offY; sys.positions[wi+2] = pt.z + p.offZ;
+                const br = 0.5 + tw * 0.5;
+                sys.colors[wi] = Math.min(1, sys.colors[wi]*0.88 + br*0.12);
+                sys.colors[wi+1] = Math.min(1, sys.colors[wi+1]*0.88 + br*0.12);
+                sys.colors[wi+2] = Math.min(1, sys.colors[wi+2]*0.88 + br*0.12);
                 wi += 3;
             }
             sys.geo.setDrawRange(0, sys.maxParticles);
@@ -548,137 +386,97 @@
         }
 
         function updateHeart(heart, handPos, time, dt) {
-            const posArr  = heart.positions;
-            const baseArr = heart.basePos;
-            const rotSpeed = 0.18;
-            const angle = time * rotSpeed;
-            const cosA = Math.cos(angle), sinA = Math.sin(angle);
+            const pa = heart.positions, ba = heart.basePos;
+            const angle = time * 0.18, cosA = Math.cos(angle), sinA = Math.sin(angle);
             const breathe = 1 + Math.sin(time * 0.55) * 0.04;
-
             for (let i = 0; i < heart.count; i++) {
-                let bx = baseArr[i * 3];
-                let by = baseArr[i * 3 + 1];
-                let bz = baseArr[i * 3 + 2];
-                const cx = heart.centerX;
-                const dx = bx - cx;
-                const rx = dx * cosA + bz * sinA;
-                const rz = -dx * sinA + bz * cosA;
-                bx = cx + rx * breathe;
-                by = by * breathe;
-                bz = rz * breathe;
-
-                // Magnetic perturbation when hand is close
+                let bx = ba[i*3], by = ba[i*3+1], bz = ba[i*3+2];
+                const cx = heart.centerX, dx = bx - cx;
+                const rx = dx * cosA + bz * sinA, rz = -dx * sinA + bz * cosA;
+                bx = cx + rx * breathe; by *= breathe; bz = rz * breathe;
                 if (handPos) {
                     const pdx = bx - handPos.x, pdy = by - handPos.y, pdz = bz - handPos.z;
-                    const dist = Math.sqrt(pdx * pdx + pdy * pdy + pdz * pdz);
-                    const radius = 8.0;
-                    if (dist < radius) {
-                        const strength = (1 - dist / radius) * 1.5;
-                        const nx = pdx / (dist + 0.001), ny = pdy / (dist + 0.001), nz = pdz / (dist + 0.001);
-                        bx += nx * strength; by += ny * strength; bz += nz * strength;
+                    const dist = Math.sqrt(pdx*pdx + pdy*pdy + pdz*pdz);
+                    if (dist < 8.0) {
+                        const str = (1 - dist/8.0) * 1.5;
+                        const nd = dist + 0.001;
+                        bx += (pdx/nd)*str; by += (pdy/nd)*str; bz += (pdz/nd)*str;
                     }
                 }
-                posArr[i * 3] = bx; posArr[i * 3 + 1] = by; posArr[i * 3 + 2] = bz;
+                pa[i*3]=bx; pa[i*3+1]=by; pa[i*3+2]=bz;
             }
             heart.geo.attributes.position.needsUpdate = true;
         }
 
-        function updateTrail(trailSys, handPos, dt) {
-            const { trailData, positions, maxTrail, geo, mat } = trailSys;
-            if (handPos) {
-                trailData.unshift({ age: 0, x: handPos.x, y: handPos.y, z: handPos.z });
-                if (trailData.length > maxTrail) trailData.length = maxTrail;
-                mat.opacity = Math.min(0.85, mat.opacity + 4 * dt);
+        function updateTrail(sys, handPos, dt) {
+            const d = sys.trailData, p = sys.positions;
+            if (handPos) { d.unshift({ age: 0, x: handPos.x, y: handPos.y, z: handPos.z }); if (d.length > sys.maxTrail) d.length = sys.maxTrail; sys.mat.opacity = Math.min(0.85, sys.mat.opacity + 4*dt); }
+            for (const t of d) t.age += dt;
+            while (d.length && d[d.length-1].age > 1.8) d.pop();
+            if (!handPos && !d.length) sys.mat.opacity += (0 - sys.mat.opacity) * 3 * dt;
+            for (let i = 0; i < sys.maxTrail; i++) {
+                if (i < d.length) { const t = d[i]; p[i*3]=t.x; p[i*3+1]=t.y; p[i*3+2]=t.z; }
+                else { p[i*3]=0; p[i*3+1]=-999; p[i*3+2]=0; }
             }
-            // Age existing
-            for (const d of trailData) d.age += dt;
-            // Remove old
-            while (trailData.length > 0 && trailData[trailData.length - 1].age > 1.8) trailData.pop();
-            // Fade if no hand
-            if (!handPos && trailData.length === 0) {
-                mat.opacity += (0 - mat.opacity) * 3 * dt;
-            }
-            // Write positions
-            for (let i = 0; i < maxTrail; i++) {
-                if (i < trailData.length) {
-                    const d = trailData[i];
-                    positions[i * 3] = d.x; positions[i * 3 + 1] = d.y; positions[i * 3 + 2] = d.z;
-                } else {
-                    positions[i * 3] = 0; positions[i * 3 + 1] = -999; positions[i * 3 + 2] = 0;
-                }
-            }
-            geo.setDrawRange(0, Math.min(maxTrail, trailData.length));
-            geo.attributes.position.needsUpdate = true;
+            sys.geo.setDrawRange(0, Math.min(sys.maxTrail, d.length));
+            sys.geo.attributes.position.needsUpdate = true;
         }
 
-        function updateFloatingDust(sys, time) {
-            const posArr = sys.positions;
+        function updateDust(sys, time) {
+            const pa = sys.positions;
             for (let i = 0; i < sys.dataArr.length; i++) {
                 const d = sys.dataArr[i];
-                posArr[i * 3]     = d.bx + Math.sin(time * d.sx * 2 + d.ph) * d.amp;
-                posArr[i * 3 + 1] = d.by + Math.cos(time * d.sy * 2 + d.ph) * d.amp;
-                posArr[i * 3 + 2] = d.bz + Math.sin(time * d.sz * 2 + d.ph + 1) * d.amp * 0.7;
+                pa[i*3]=d.bx+Math.sin(time*d.sx*2+d.ph)*d.amp;
+                pa[i*3+1]=d.by+Math.cos(time*d.sy*2+d.ph)*d.amp;
+                pa[i*3+2]=d.bz+Math.sin(time*d.sz*2+d.ph+1)*d.amp*0.7;
             }
             sys.geo.attributes.position.needsUpdate = true;
         }
 
-        // ═══════ Hand World Mapping ═══════
-        function mapHandToWorld(landmarks) {
-            const wrist  = landmarks[0];
-            const midMcp = landmarks[9];
-            const px = (wrist.x + midMcp.x) / 2;
-            const py = (wrist.y + midMcp.y) / 2;
-            const wx = (1 - px) * 22 - 11;
-            const wy = (1 - py) * 13 - 2.5;
-            const wz = 5.5;
-            return { x: wx, y: wy, z: wz };
+        // ═══════ Hand Mapping ═══════
+        function mapHandToWorld(lm) {
+            const wx = (1 - (lm[0].x + lm[9].x) / 2) * 22 - 11;
+            const wy = (1 - (lm[0].y + lm[9].y) / 2) * 13 - 2.5;
+            return { x: wx, y: wy, z: 5.5 };
         }
 
-        // ═══════ MediaPipe Hands ═══════
+        // ═══════ MediaPipe ═══════
         let handsInstance = null;
         function initMediaPipe() {
             if (typeof Hands === 'undefined') { console.warn('MediaPipe Hands not loaded'); return; }
-            handsInstance = new Hands({
-                locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/${file}`
-            });
-            handsInstance.setOptions({
-                maxNumHands: 2, modelComplexity: 1,
-                minDetectionConfidence: 0.65, minTrackingConfidence: 0.45,
-            });
-            handsInstance.onResults((results) => {
+            handsInstance = new Hands({ locateFile: (f) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/${f}` });
+            handsInstance.setOptions({ maxNumHands: 2, modelComplexity: 1, minDetectionConfidence: 0.65, minTrackingConfidence: 0.45 });
+            handsInstance.onResults((r) => {
                 leftHandRaw = null; rightHandRaw = null;
-                if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
-                    for (let i = 0; i < results.multiHandLandmarks.length; i++) {
-                        const wp = mapHandToWorld(results.multiHandLandmarks[i]);
-                        if (results.multiHandedness[i].label === 'Left') leftHandRaw = wp;
+                if (r.multiHandLandmarks && r.multiHandLandmarks.length) {
+                    for (let i = 0; i < r.multiHandLandmarks.length; i++) {
+                        const wp = mapHandToWorld(r.multiHandLandmarks[i]);
+                        if (r.multiHandedness[i].label === 'Left') leftHandRaw = wp;
                         else rightHandRaw = wp;
                     }
                 }
             });
             mediaPipeReady = true;
+            console.log('  MediaPipe Hands ready ✓');
         }
 
         async function startCamera() {
             if (cameraActive) return;
             if (!mediaPipeReady) { initMediaPipe(); if (!handsInstance) return; }
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({
-                    video: { width: 640, height: 480, facingMode: 'user' }
-                });
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480, facingMode: 'user' } });
                 webcamVideo.srcObject = stream;
                 await webcamVideo.play();
-                const camUtil = new Camera(webcamVideo, {
-                    onFrame: async () => { if (handsInstance) await handsInstance.send({ image: webcamVideo }); },
-                    width: 640, height: 480,
-                });
-                await camUtil.start();
+                const cu = new Camera(webcamVideo, { onFrame: async () => { if (handsInstance) await handsInstance.send({ image: webcamVideo }); }, width: 640, height: 480 });
+                await cu.start();
                 cameraActive = true;
                 cameraHint.classList.add('hidden');
                 statusText.textContent = 'Star Bridge active — reach out with both hands';
                 statusText.style.color = 'rgba(180,220,255,0.6)';
+                console.log('  Camera active ✓');
             } catch (err) {
                 console.warn('Camera denied:', err.message);
-                statusText.textContent = 'Camera not available — enjoying the cosmos';
+                statusText.textContent = 'Camera unavailable — enjoying the cosmos';
                 statusText.style.color = 'rgba(255,255,255,0.25)';
                 cameraHint.textContent = '⟳ Retry Camera';
                 cameraHint.classList.remove('hidden');
@@ -688,14 +486,13 @@
 
         // ═══════ Animation Loop ═══════
         const clock = new THREE.Clock();
-        let lastUIUpdate = 0;
+        let lastUI = 0;
 
         function animate(ts) {
             requestAnimationFrame(animate);
             const dt = Math.min(clock.getDelta(), 0.1);
             const time = ts * 0.001;
 
-            // Smooth hand positions
             if (leftHandRaw) {
                 if (!leftHandWorld) leftHandWorld = { ...leftHandRaw };
                 leftHandWorld.x += (leftHandRaw.x - leftHandWorld.x) * HAND_SMOOTH;
@@ -709,36 +506,29 @@
                 rightHandWorld.z += (rightHandRaw.z - rightHandWorld.z) * HAND_SMOOTH;
             } else rightHandWorld = null;
 
-            // UI
-            if (ts - lastUIUpdate > 350) {
-                lastUIUpdate = ts;
+            if (ts - lastUI > 350) {
+                lastUI = ts;
                 statusDotLeft.className  = leftHandWorld  ? 'status-dot active' : 'status-dot';
                 statusDotRight.className = rightHandWorld ? 'status-dot active' : 'status-dot';
-                if (cameraActive && !leftHandWorld && !rightHandWorld) {
-                    statusText.textContent = 'Reach out — touch the stars';
-                    statusText.style.color = 'rgba(255,255,255,0.3)';
-                } else if (cameraActive && (leftHandWorld || rightHandWorld)) {
-                    const h = [];
-                    if (leftHandWorld) h.push('Left Hand');
-                    if (rightHandWorld) h.push('Right Hand');
+                if (cameraActive && !leftHandWorld && !rightHandWorld) { statusText.textContent = 'Reach out — touch the stars'; statusText.style.color = 'rgba(255,255,255,0.3)'; }
+                else if (cameraActive && (leftHandWorld || rightHandWorld)) {
+                    const h = []; if (leftHandWorld) h.push('Left Hand'); if (rightHandWorld) h.push('Right Hand');
                     statusText.textContent = h.join(' · ') + ' — Star Bridge connected';
                     statusText.style.color = 'rgba(180,220,255,0.6)';
                 }
             }
 
-            // Update
             updateHeart(leftHeart, leftHandWorld, time, dt);
             updateHeart(rightHeart, rightHandWorld, time, dt);
-            updateBridgeSystem(leftBridge, leftHandWorld, time, dt);
-            updateBridgeSystem(rightBridge, rightHandWorld, time, dt);
+            updateBridge(leftBridge, leftHandWorld, time, dt);
+            updateBridge(rightBridge, rightHandWorld, time, dt);
             updateTrail(leftTrail, leftHandWorld, dt);
             updateTrail(rightTrail, rightHandWorld, dt);
-            updateFloatingDust(floatingDust, time);
+            updateDust(floatingDust, time);
 
             starfield.rotation.y += dt * 0.025;
             starfield.rotation.x += dt * 0.006;
 
-            // Mouse parallax
             mouseCurrent.x += (mouseTarget.x - mouseCurrent.x) * 2 * dt;
             mouseCurrent.y += (mouseTarget.y - mouseCurrent.y) * 2 * dt;
             camera.position.x += (mouseCurrent.x * 2.2 - camera.position.x) * 1.2 * dt;
@@ -748,26 +538,18 @@
             composer.render();
         }
 
-        // ═══════ Resize ═══════
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
             composer.setSize(window.innerWidth, window.innerHeight);
         });
-
-        // Keyboard shortcut
         window.addEventListener('keydown', (e) => { if (e.key === 'c' || e.key === 'C') startCamera(); });
 
         // ═══════ Launch ═══════
         initMediaPipe();
         requestAnimationFrame(animate);
-
-        console.log('%c💜💙 Touch the Stars — Particle Cosmos %cready',
-            'font-size:16px','font-size:12px');
-        console.log('  🖱  Move mouse for 3D parallax');
-        console.log('  📷  Click "Enable Star Bridge" or press C for hand tracking');
-        console.log('  💜  Left = Purple Heart   💙  Right = Deep Blue Heart');
+        console.log('%c  Ready — enjoy the cosmos! %c💜💙', 'font-size:14px', 'font-size:18px');
     </script>
 </body>
 </html>
