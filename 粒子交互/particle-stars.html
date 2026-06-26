@@ -1,151 +1,113 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>触碰星辰 · 粒子星海</title>
+    <title>Touch the Stars · Particle Cosmos</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-
         body {
             width: 100vw; height: 100vh;
             overflow: hidden;
-            background: #020008;
-            font-family: "PingFang SC", "Noto Serif SC", "STSong", "Songti SC", Georgia, serif;
+            background: #010006;
+            font-family: "PingFang SC", "Noto Serif SC", Georgia, serif;
             cursor: crosshair;
             -webkit-tap-highlight-color: transparent;
             user-select: none;
         }
-
         #threeCanvas {
             position: fixed; top: 0; left: 0;
-            width: 100%; height: 100%;
-            z-index: 1;
+            width: 100%; height: 100%; z-index: 1;
         }
 
-        /* ── 顶部标题 ── */
         .title-overlay {
-            position: fixed; top: 40px; left: 50%;
+            position: fixed; top: 36px; left: 50%;
             transform: translateX(-50%);
-            z-index: 10;
-            pointer-events: none;
-            text-align: center;
+            z-index: 10; pointer-events: none; text-align: center;
         }
         .title-main {
-            font-size: 28px;
-            color: rgba(255,255,255,0.75);
-            letter-spacing: 12px;
-            font-family: "PingFang SC", "Noto Serif SC", serif;
-            text-shadow: 0 0 60px rgba(180,150,255,0.4), 0 0 120px rgba(130,180,255,0.2);
-            margin-bottom: 8px;
+            font-size: 26px; color: rgba(255,255,255,0.7);
+            letter-spacing: 10px;
+            text-shadow: 0 0 60px rgba(180,150,255,0.35), 0 0 120px rgba(130,180,255,0.18);
+            margin-bottom: 6px;
         }
         .title-sub {
-            font-size: 12px;
-            color: rgba(255,255,255,0.3);
-            letter-spacing: 6px;
+            font-size: 11px; color: rgba(255,255,255,0.25); letter-spacing: 5px;
         }
 
-        /* ── 状态指示器 ── */
         .status-bar {
             position: fixed; bottom: 36px; left: 50%;
-            transform: translateX(-50%);
-            z-index: 10;
-            display: flex;
-            align-items: center;
-            gap: 12px;
+            transform: translateX(-50%); z-index: 10;
+            display: flex; align-items: center; gap: 12px;
             padding: 10px 24px;
-            background: rgba(20,18,40,0.55);
-            backdrop-filter: blur(30px);
-            -webkit-backdrop-filter: blur(30px);
-            border-radius: 50px;
-            border: 1px solid rgba(255,255,255,0.06);
+            background: rgba(20,18,40,0.5);
+            backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
+            border-radius: 50px; border: 1px solid rgba(255,255,255,0.05);
             pointer-events: none;
         }
         .status-dot {
-            width: 7px; height: 7px;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.2);
-            transition: all 0.6s ease;
+            width: 7px; height: 7px; border-radius: 50%;
+            background: rgba(255,255,255,0.15); transition: all 0.5s ease;
         }
         .status-dot.active { background: #7bff8f; box-shadow: 0 0 10px rgba(123,255,143,0.6); }
-        .status-dot.warning { background: #ffb347; box-shadow: 0 0 10px rgba(255,179,71,0.6); }
         .status-text {
-            font-size: 11px;
-            color: rgba(255,255,255,0.35);
-            letter-spacing: 2px;
-            transition: color 0.6s ease;
+            font-size: 11px; color: rgba(255,255,255,0.3);
+            letter-spacing: 2px; transition: color 0.5s ease;
         }
 
-        /* ── 摄像头提示 ── */
         .camera-hint {
-            position: fixed; bottom: 120px; left: 50%;
-            transform: translateX(-50%);
-            z-index: 10;
-            padding: 14px 28px;
-            background: rgba(180,130,255,0.12);
-            border: 1px solid rgba(180,150,255,0.25);
+            position: fixed; bottom: 110px; left: 50%;
+            transform: translateX(-50%); z-index: 10;
+            padding: 13px 28px;
+            background: rgba(160,120,255,0.1);
+            border: 1px solid rgba(180,150,255,0.22);
             border-radius: 50px;
-            color: rgba(255,255,255,0.7);
-            font-size: 13px;
-            letter-spacing: 3px;
-            cursor: pointer;
-            pointer-events: all;
-            transition: all 0.5s ease;
-            font-family: inherit;
+            color: rgba(255,255,255,0.65); font-size: 13px; letter-spacing: 2px;
+            cursor: pointer; pointer-events: all;
+            transition: all 0.5s ease; font-family: inherit;
         }
         .camera-hint:hover {
-            background: rgba(180,130,255,0.22);
-            border-color: rgba(200,170,255,0.4);
-            box-shadow: 0 0 40px rgba(160,120,255,0.2);
-            color: #fff;
+            background: rgba(160,120,255,0.2);
+            border-color: rgba(200,170,255,0.38);
+            box-shadow: 0 0 40px rgba(150,110,255,0.18); color: #fff;
         }
-        .camera-hint.hidden { opacity: 0; pointer-events: none; transform: translateX(-50%) translateY(20px); }
+        .camera-hint.hidden { opacity: 0; pointer-events: none; transform: translateX(-50%) translateY(16px); }
 
-        /* ── 响应式 ── */
         @media (max-width: 768px) {
-            .title-main { font-size: 20px; letter-spacing: 6px; }
-            .title-sub { font-size: 10px; letter-spacing: 3px; }
+            .title-main { font-size: 18px; letter-spacing: 4px; }
+            .title-sub { font-size: 10px; letter-spacing: 2px; }
             .status-bar { padding: 8px 16px; gap: 8px; }
+            .camera-hint { font-size: 11px; padding: 10px 20px; }
         }
     </style>
 </head>
 <body>
 
-    <!-- Three.js 画布由引擎自动创建 -->
-
-    <!-- 顶部标题 -->
     <div class="title-overlay">
-        <div class="title-main">触 碰 星 辰</div>
-        <div class="title-sub">由粒子构筑的宇宙星海</div>
+        <div class="title-main">T O U C H &nbsp; T H E &nbsp; S T A R S</div>
+        <div class="title-sub">A Cosmos of Particles</div>
     </div>
 
-    <!-- 底部状态栏 -->
     <div class="status-bar" id="statusBar">
         <span class="status-dot" id="statusDotLeft"></span>
         <span class="status-dot" id="statusDotRight"></span>
-        <span class="status-text" id="statusText">等待手势感应...</span>
+        <span class="status-text" id="statusText">Awaiting hand sensing...</span>
     </div>
 
-    <!-- 摄像头启动提示 -->
-    <button class="camera-hint" id="cameraHint" title="开启摄像头以进行手势交互">✦ 开启星桥感应</button>
+    <button class="camera-hint" id="cameraHint">✦ Enable Star Bridge</button>
 
-    <!-- 隐藏摄像头视频元素 -->
     <video id="webcamVideo" style="display:none" playsinline></video>
 
-    <!-- ═══════════════════════ 媒体管线 手势识别 ═══════════════════════ -->
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3.1675466862/camera_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils@0.6.1675466023/control_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils@0.3.1675466124/drawing_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/hands.js" crossorigin="anonymous"></script>
 
-    <!-- ═══════════════════════ Three.js 引入 ═══════════════════════ -->
     <script type="importmap">
-        {
-            "imports": {
-                "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
-                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
-            }
-        }
+        { "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+        }}
     </script>
 
     <script type="module">
@@ -154,76 +116,61 @@
         import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
         import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 
-        // ═══════════════════════════════════
-        //  DOM 引用
-        // ═══════════════════════════════════
+        // ═══════ DOM ═══════
         const statusDotLeft  = document.getElementById('statusDotLeft');
         const statusDotRight = document.getElementById('statusDotRight');
         const statusText     = document.getElementById('statusText');
         const cameraHint     = document.getElementById('cameraHint');
         const webcamVideo    = document.getElementById('webcamVideo');
 
-        // ═══════════════════════════════════
-        //  全局状态
-        // ═══════════════════════════════════
+        // ═══════ State ═══════
         let mediaPipeReady = false;
         let cameraActive   = false;
-        let leftHandWorld  = null;   // { x, y, z } — 平滑后的左手世界坐标
-        let rightHandWorld = null;   // { x, y, z } — 平滑后的右手世界坐标
+        let leftHandWorld  = null;
+        let rightHandWorld = null;
         let leftHandRaw    = null;
         let rightHandRaw   = null;
-        const HAND_SMOOTH  = 0.28;   // 平滑系数（越小越平滑）
+        const HAND_SMOOTH  = 0.22;
 
-        // ═══════════════════════════════════
-        //  Three.js 初始化
-        // ═══════════════════════════════════
+        // ═══════ Three.js Init ═══════
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.outputColorSpace = THREE.SRGBColorSpace;
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        renderer.toneMappingExposure = 1.2;
+        renderer.toneMappingExposure = 1.3;
         document.body.appendChild(renderer.domElement);
         renderer.domElement.id = 'threeCanvas';
 
         const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(68, window.innerWidth / window.innerHeight, 0.4, 90);
+        camera.position.set(0, 0.5, 20);
+        camera.lookAt(0, 0, 0);
 
-        const camera = new THREE.PerspectiveCamera(
-            72,                                          // FOV
-            window.innerWidth / window.innerHeight,      // Aspect
-            0.5,                                         // Near
-            80                                           // Far
-        );
-        camera.position.set(0, -0.3, 16.5);
-        camera.lookAt(0, -0.5, 0);
-
-        // ── 鼠标视差 ──
-        const mouseTarget = new THREE.Vector2(0, 0);
+        const mouseTarget  = new THREE.Vector2(0, 0);
         const mouseCurrent = new THREE.Vector2(0, 0);
         document.addEventListener('mousemove', (e) => {
-            mouseTarget.x = (e.clientX / window.innerWidth)  * 2 - 1;
+            mouseTarget.x = (e.clientX / window.innerWidth) * 2 - 1;
             mouseTarget.y = -(e.clientY / window.innerHeight) * 2 + 1;
         });
-        // 移动端触控
         document.addEventListener('touchmove', (e) => {
             const t = e.touches[0];
-            mouseTarget.x = (t.clientX / window.innerWidth)  * 2 - 1;
+            mouseTarget.x = (t.clientX / window.innerWidth) * 2 - 1;
             mouseTarget.y = -(t.clientY / window.innerHeight) * 2 + 1;
         }, { passive: true });
 
-        // ═══════════════════════════════════
-        //  粒子发光纹理工厂
-        // ═══════════════════════════════════
-        function createGlowTexture(r, g, b, innerAlpha = 0.9, size = 64) {
+        // ═══════ Glow Texture Factory ═══════
+        function createGlowTexture(r, g, b, innerAlpha = 0.92, size = 128) {
             const canvas = document.createElement('canvas');
             canvas.width = size; canvas.height = size;
             const ctx = canvas.getContext('2d');
             const half = size / 2;
             const grad = ctx.createRadialGradient(half, half, 0, half, half, half);
-            grad.addColorStop(0,   `rgba(${r},${g},${b},${innerAlpha})`);
-            grad.addColorStop(0.15, `rgba(${r},${g},${b},${innerAlpha * 0.85})`);
-            grad.addColorStop(0.4,  `rgba(${r},${g},${b},${innerAlpha * 0.4})`);
-            grad.addColorStop(0.7,  `rgba(${r},${g},${b},0.04)`);
+            grad.addColorStop(0,    `rgba(${r},${g},${b},${innerAlpha})`);
+            grad.addColorStop(0.08, `rgba(${r},${g},${b},${innerAlpha * 0.9})`);
+            grad.addColorStop(0.25, `rgba(${r},${g},${b},${innerAlpha * 0.55})`);
+            grad.addColorStop(0.5,  `rgba(${r},${g},${b},${innerAlpha * 0.15})`);
+            grad.addColorStop(0.75, `rgba(${r},${g},${b},0.02)`);
             grad.addColorStop(1,    'rgba(0,0,0,0)');
             ctx.fillStyle = grad;
             ctx.fillRect(0, 0, size, size);
@@ -232,49 +179,207 @@
             return tex;
         }
 
-        // 预生成所有纹理
-        const texPurple    = createGlowTexture(180, 60, 255, 0.92);   // 紫爱心
-        const texBlue      = createGlowTexture(20, 50, 255, 0.92);    // 蓝爱心
-        const texDeepPurple = createGlowTexture(90, 18, 155, 0.85);   // 深紫桥
-        const texDeepBlue  = createGlowTexture(8, 20, 110, 0.85);     // 深蓝桥
-        const texWhite     = createGlowTexture(220, 220, 255, 0.8);   // 星空
-        const texWarmWhite = createGlowTexture(255, 230, 200, 0.75);  // 浮尘
+        // Pre-generate all textures
+        const texPurple     = createGlowTexture(170, 50, 250, 0.94);
+        const texBlue       = createGlowTexture(18, 45, 250, 0.94);
+        const texHaloPurple = createGlowTexture(140, 30, 220, 0.45);
+        const texHaloBlue   = createGlowTexture(12, 30, 200, 0.45);
+        const texDeepPurple = createGlowTexture(80, 12, 140, 0.88);
+        const texDeepBlue   = createGlowTexture(6, 14, 90, 0.88);
+        const texWhite      = createGlowTexture(210, 210, 250, 0.82);
+        const texWarmWhite  = createGlowTexture(255, 225, 190, 0.7);
+        const texHandGlow   = createGlowTexture(255, 200, 140, 0.92);
 
-        // ═══════════════════════════════════
-        //  1. 深空星海背景（远层球壳）
-        // ═══════════════════════════════════
+        // ═══════ 1. Deep Starfield ═══════
         function createDeepStarfield() {
-            const count = 2200;
-            const radius = 38;
+            const count = 2500;
+            const radius = 42;
             const positions = new Float32Array(count * 3);
             const colors = new Float32Array(count * 3);
-            const sizes = new Float32Array(count);
-
             for (let i = 0; i < count; i++) {
-                // 球壳上随机分布
                 const theta = Math.random() * Math.PI * 2;
                 const phi   = Math.acos(2 * Math.random() - 1);
-                const r     = radius * (0.85 + Math.random() * 0.3);
+                const r     = radius * (0.78 + Math.random() * 0.35);
                 positions[i * 3]     = Math.sin(phi) * Math.cos(theta) * r;
                 positions[i * 3 + 1] = Math.sin(phi) * Math.sin(theta) * r;
                 positions[i * 3 + 2] = Math.cos(phi) * r;
-
-                // 颜色：偏白/淡蓝/淡紫
-                const colorRand = Math.random();
-                if (colorRand < 0.6) {
-                    colors[i * 3] = 0.8 + Math.random() * 0.2;
-                    colors[i * 3 + 1] = 0.8 + Math.random() * 0.2;
-                    colors[i * 3 + 2] = 0.9 + Math.random() * 0.1;
-                } else if (colorRand < 0.8) {
-                    colors[i * 3] = 0.55 + Math.random() * 0.2;
-                    colors[i * 3 + 1] = 0.6 + Math.random() * 0.2;
-                    colors[i * 3 + 2] = 0.85 + Math.random() * 0.15;
+                const rc = Math.random();
+                if (rc < 0.55) {
+                    colors[i * 3] = 0.75; colors[i * 3 + 1] = 0.78; colors[i * 3 + 2] = 0.95;
+                } else if (rc < 0.8) {
+                    colors[i * 3] = 0.5; colors[i * 3 + 1] = 0.55; colors[i * 3 + 2] = 0.9;
                 } else {
-                    colors[i * 3] = 0.6 + Math.random() * 0.2;
-                    colors[i * 3 + 1] = 0.5 + Math.random() * 0.2;
-                    colors[i * 3 + 2] = 0.8 + Math.random() * 0.2;
+                    colors[i * 3] = 0.6; colors[i * 3 + 1] = 0.45; colors[i * 3 + 2] = 0.85;
                 }
-                sizes[i] = 0.8 + Math.random() * 2.5;
+            }
+            const geo = new THREE.BufferGeometry();
+            geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+            const mat = new THREE.PointsMaterial({
+                size: 0.32, map: texWhite, vertexColors: true,
+                blending: THREE.AdditiveBlending, depthWrite: false,
+                transparent: true, opacity: 0.7, sizeAttenuation: true,
+            });
+            const stars = new THREE.Points(geo, mat);
+            stars.renderOrder = 0;
+            scene.add(stars);
+            return stars;
+        }
+
+        // ═══════ 2. Floating Dust ═══════
+        function createFloatingDust() {
+            const count = 500;
+            const positions = new Float32Array(count * 3);
+            const colors = new Float32Array(count * 3);
+            const dataArr = [];
+            for (let i = 0; i < count; i++) {
+                positions[i * 3]     = (Math.random() - 0.5) * 30;
+                positions[i * 3 + 1] = (Math.random() - 0.5) * 20;
+                positions[i * 3 + 2] = (Math.random() - 0.5) * 14;
+                const rn = Math.random();
+                if (rn < 0.45) {
+                    colors[i * 3] = 0.85; colors[i * 3 + 1] = 0.7; colors[i * 3 + 2] = 0.55;
+                } else if (rn < 0.78) {
+                    colors[i * 3] = 0.55; colors[i * 3 + 1] = 0.5; colors[i * 3 + 2] = 0.88;
+                } else {
+                    colors[i * 3] = 0.72; colors[i * 3 + 1] = 0.48; colors[i * 3 + 2] = 0.95;
+                }
+                dataArr.push({
+                    bx: positions[i * 3], by: positions[i * 3 + 1], bz: positions[i * 3 + 2],
+                    sx: (Math.random() - 0.5) * 0.28, sy: (Math.random() - 0.5) * 0.22,
+                    sz: (Math.random() - 0.5) * 0.18, ph: Math.random() * Math.PI * 2,
+                    amp: 0.08 + Math.random() * 0.55,
+                });
+            }
+            const geo = new THREE.BufferGeometry();
+            geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+            const mat = new THREE.PointsMaterial({
+                size: 0.16, map: texWarmWhite, vertexColors: true,
+                blending: THREE.AdditiveBlending, depthWrite: false,
+                transparent: true, opacity: 0.5, sizeAttenuation: true,
+            });
+            const dust = new THREE.Points(geo, mat);
+            dust.renderOrder = 1;
+            scene.add(dust);
+            return { points: dust, dataArr, positions, geo };
+        }
+
+        // ═══════ 3. Volumetric 3D Heart ═══════
+        // Uses "revolved heart" approach: revolve the right half of 2D heart around Y axis
+        // Result: looks like a heart silhouette from every horizontal angle
+        function createVolumetricHeart(centerX, texHeart, texHalo, baseRGB) {
+            const numParticles = 5500;
+            const haloCount    = 2000;
+            const totalPts     = numParticles + haloCount;
+            const positions    = new Float32Array(totalPts * 3);
+            const colors       = new Float32Array(totalPts * 3);
+            const sizes        = new Float32Array(totalPts);
+            const basePos      = new Float32Array(totalPts * 3);
+            const scale3D      = 0.42;
+            const zDepth       = 1.0;
+
+            // Precompute heart outline
+            const outlinePts = 360;
+            const outline = [];
+            for (let i = 0; i < outlinePts; i++) {
+                const t = (i / outlinePts) * Math.PI * 2;
+                const rx = 16 * Math.pow(Math.sin(t), 3);
+                const ry = 13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t);
+                outline.push({ x: rx, y: ry });
+            }
+
+            // Find y-range and max width at each y
+            const yMin = -18, yMax = 16;
+            const yBands = 200;
+            const xMaxAtY = new Map(); // y → max |x|
+
+            // For each outline point, record max x for nearby y
+            for (const pt of outline) {
+                const yKey = Math.round(pt.y * (yBands / (yMax - yMin)));
+                const cur = xMaxAtY.get(yKey) || 0;
+                if (Math.abs(pt.x) > cur) xMaxAtY.set(yKey, Math.abs(pt.x));
+            }
+            // Fill in gaps
+            for (let k = 0; k < yBands; k++) {
+                if (!xMaxAtY.has(k)) {
+                    // interpolate from neighbors
+                    let lo = k, hi = k;
+                    while (lo >= 0 && !xMaxAtY.has(lo)) lo--;
+                    while (hi < yBands && !xMaxAtY.has(hi)) hi++;
+                    const loV = lo >= 0 ? xMaxAtY.get(lo) : 0;
+                    const hiV = hi < yBands ? xMaxAtY.get(hi) : 0;
+                    const t2 = (lo >= 0 && hi < yBands) ? (k - lo) / (hi - lo) : 0.5;
+                    xMaxAtY.set(k, loV + (hiV - loV) * (lo >= 0 && hi < yBands ? t2 : 0));
+                }
+            }
+
+            function getHeartRadius(yVal) {
+                const yKey = Math.round(yVal * (yBands / (yMax - yMin)));
+                const clamped = Math.max(0, Math.min(yBands - 1, yKey));
+                return xMaxAtY.get(clamped) || 0;
+            }
+
+            const [cr, cg, cb] = baseRGB;
+
+            // Generate volume particles
+            for (let i = 0; i < numParticles; i++) {
+                // Random y within heart range, biased toward center
+                const yRaw = yMin + Math.random() * (yMax - yMin);
+                const maxR = getHeartRadius(yRaw);
+                if (maxR < 0.3) {
+                    // Outside heart — place at nearest valid position
+                    const fallbackY = yMin + Math.random() * 4; // bias to wider bottom area
+                    const fallbackR = getHeartRadius(fallbackY);
+                    const r2 = fallbackR * Math.sqrt(Math.random());
+                    const phi2 = Math.random() * Math.PI * 2;
+                    const x3 = r2 * Math.cos(phi2);
+                    const z3 = r2 * Math.sin(phi2) * zDepth;
+                    basePos[i * 3]     = x3 * scale3D + centerX;
+                    basePos[i * 3 + 1] = fallbackY * scale3D;
+                    basePos[i * 3 + 2] = z3 * scale3D;
+                } else {
+                    const r = maxR * Math.pow(Math.random(), 0.55); // bias toward surface for definition
+                    const phi = Math.random() * Math.PI * 2;
+                    const x3 = r * Math.cos(phi);
+                    const z3 = r * Math.sin(phi) * zDepth;
+                    basePos[i * 3]     = x3 * scale3D + centerX;
+                    basePos[i * 3 + 1] = yRaw * scale3D;
+                    basePos[i * 3 + 2] = z3 * scale3D;
+                }
+                positions[i * 3]     = basePos[i * 3];
+                positions[i * 3 + 1] = basePos[i * 3 + 1];
+                positions[i * 3 + 2] = basePos[i * 3 + 2];
+
+                // Brighter at surface, dimmer inside
+                const distFromSurface = maxR > 0.3 ? 1 - (r / maxR) : 0;
+                const bright = 0.55 + (1 - distFromSurface) * 0.45;
+                colors[i * 3]     = Math.min(1, (cr / 255) * bright + Math.random() * 0.06);
+                colors[i * 3 + 1] = Math.min(1, (cg / 255) * bright + Math.random() * 0.04);
+                colors[i * 3 + 2] = Math.min(1, (cb / 255) * bright + Math.random() * 0.04);
+                sizes[i] = 0.6 + (1 - distFromSurface) * 1.0 + Math.random() * 0.5;
+            }
+
+            // Generate halo/blend particles (beyond heart boundary)
+            for (let i = 0; i < haloCount; i++) {
+                const idx = numParticles + i;
+                const yRaw = yMin + Math.random() * (yMax - yMin);
+                const maxR = getHeartRadius(yRaw);
+                const extR = maxR > 0.2 ? maxR * (1.05 + Math.random() * 0.35) : 0.3 + Math.random() * 1.5;
+                const phi = Math.random() * Math.PI * 2;
+                const x3 = extR * Math.cos(phi);
+                const z3 = extR * Math.sin(phi) * zDepth * 0.8;
+                basePos[idx * 3]     = x3 * scale3D + centerX;
+                basePos[idx * 3 + 1] = yRaw * scale3D;
+                basePos[idx * 3 + 2] = z3 * scale3D;
+                positions[idx * 3]     = basePos[idx * 3];
+                positions[idx * 3 + 1] = basePos[idx * 3 + 1];
+                positions[idx * 3 + 2] = basePos[idx * 3 + 2];
+                const alpha = 0.25 + Math.random() * 0.3;
+                colors[idx * 3]     = (cr / 255) * alpha;
+                colors[idx * 3 + 1] = (cg / 255) * alpha;
+                colors[idx * 3 + 2] = (cb / 255) * alpha;
+                sizes[idx] = 1.2 + Math.random() * 2.5;
             }
 
             const geo = new THREE.BufferGeometry();
@@ -282,252 +387,111 @@
             geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
             geo.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
 
+            // Use custom ShaderMaterial for variable size particles
             const mat = new THREE.PointsMaterial({
-                size: 0.28,
-                map: texWhite,
-                vertexColors: true,
-                blending: THREE.AdditiveBlending,
-                depthWrite: false,
-                transparent: true,
-                opacity: 0.75,
-                sizeAttenuation: true,
-            });
-
-            const stars = new THREE.Points(geo, mat);
-            stars.renderOrder = 0;
-            scene.add(stars);
-            return stars;
-        }
-
-        // ═══════════════════════════════════
-        //  2. 漂浮星光尘埃（中层）
-        // ═══════════════════════════════════
-        function createFloatingDust() {
-            const count = 450;
-            const positions = new Float32Array(count * 3);
-            const colors = new Float32Array(count * 3);
-            const dustData = []; // 储存运动参数
-
-            for (let i = 0; i < count; i++) {
-                positions[i * 3]     = (Math.random() - 0.5) * 28;
-                positions[i * 3 + 1] = (Math.random() - 0.5) * 18;
-                positions[i * 3 + 2] = (Math.random() - 0.5) * 12;
-
-                // 暖白色到淡紫淡蓝
-                const rn = Math.random();
-                if (rn < 0.5) {
-                    colors[i * 3] = 0.9; colors[i * 3 + 1] = 0.75; colors[i * 3 + 2] = 0.6;
-                } else if (rn < 0.8) {
-                    colors[i * 3] = 0.6; colors[i * 3 + 1] = 0.55; colors[i * 3 + 2] = 0.9;
-                } else {
-                    colors[i * 3] = 0.75; colors[i * 3 + 1] = 0.5; colors[i * 3 + 2] = 0.9;
-                }
-
-                dustData.push({
-                    baseX: positions[i * 3],
-                    baseY: positions[i * 3 + 1],
-                    baseZ: positions[i * 3 + 2],
-                    speedX: (Math.random() - 0.5) * 0.25,
-                    speedY: (Math.random() - 0.5) * 0.2,
-                    speedZ: (Math.random() - 0.5) * 0.15,
-                    phase: Math.random() * Math.PI * 2,
-                    amp: 0.1 + Math.random() * 0.5,
-                });
-            }
-
-            const geo = new THREE.BufferGeometry();
-            geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-            geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-
-            const mat = new THREE.PointsMaterial({
-                size: 0.13,
-                map: texWarmWhite,
-                vertexColors: true,
-                blending: THREE.AdditiveBlending,
-                depthWrite: false,
-                transparent: true,
-                opacity: 0.55,
-                sizeAttenuation: true,
-            });
-
-            const dust = new THREE.Points(geo, mat);
-            dust.renderOrder = 1;
-            scene.add(dust);
-            return { points: dust, data: dustData, positions, geo };
-        }
-
-        // ═══════════════════════════════════
-        //  3. 爱心粒子群
-        // ═══════════════════════════════════
-        function createHeartParticles(centerX, tex, baseColorRGB) {
-            const count = 2800;
-            const positions = new Float32Array(count * 3);
-            const colors = new Float32Array(count * 3);
-            const basePositions = new Float32Array(count * 3); // 存储基础位置用于磁场扰动
-
-            const [cr, cg, cb] = baseColorRGB;
-            const zDepth = 2.8;
-            const scale = 0.17;
-            const jitter = 0.28;
-
-            for (let i = 0; i < count; i++) {
-                const t = (i / count) * Math.PI * 2;
-                // 心形参数方程
-                const rawX = 16 * Math.pow(Math.sin(t), 3);
-                const rawY = 13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t);
-
-                const bx = rawX * scale + (Math.random() - 0.5) * jitter + centerX;
-                const by = rawY * scale + (Math.random() - 0.5) * jitter;
-                const bz = (Math.random() - 0.5) * zDepth;
-
-                basePositions[i * 3]     = bx;
-                basePositions[i * 3 + 1] = by;
-                basePositions[i * 3 + 2] = bz;
-
-                positions[i * 3]     = bx;
-                positions[i * 3 + 1] = by;
-                positions[i * 3 + 2] = bz;
-
-                // 颜色变化：基础色 + 随机微调
-                const brightness = 0.65 + Math.random() * 0.35;
-                colors[i * 3]     = Math.min(1, (cr / 255) * brightness + Math.random() * 0.08);
-                colors[i * 3 + 1] = Math.min(1, (cg / 255) * brightness + Math.random() * 0.06);
-                colors[i * 3 + 2] = Math.min(1, (cb / 255) * brightness + Math.random() * 0.05);
-            }
-
-            const geo = new THREE.BufferGeometry();
-            geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-            geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-
-            const mat = new THREE.PointsMaterial({
-                size: 0.22,
-                map: tex,
-                vertexColors: true,
-                blending: THREE.AdditiveBlending,
-                depthWrite: false,
-                transparent: true,
-                opacity: 0.88,
-                sizeAttenuation: true,
+                size: 0.25, map: texHeart, vertexColors: true,
+                blending: THREE.AdditiveBlending, depthWrite: false,
+                transparent: true, opacity: 0.9, sizeAttenuation: true,
             });
 
             const heart = new THREE.Points(geo, mat);
             heart.renderOrder = 2;
-            heart.position.set(0, 0, 0);
             scene.add(heart);
 
-            return {
-                points: heart,
-                geo,
-                positions,
-                basePositions,
-                colors,
-                centerX,
-                count,
-            };
+            return { points: heart, geo, positions, basePos, colors, sizes, centerX, count: totalPts, numParticles, haloCount, scale3D };
         }
 
-        // ═══════════════════════════════════
-        //  4. 星光桥粒子系统（手掌到爱心）
-        // ═══════════════════════════════════
-        function createBridgeSystem(tex, colorRGB) {
-            const maxParticles = 1800;
+        // ═══════ 4. Hand Trail System ═══════
+        function createHandTrail(glowColor) {
+            const maxTrail = 80;
+            const positions = new Float32Array(maxTrail * 3);
+            const trailData = []; // { age, pos }
+            for (let i = 0; i < maxTrail; i++) {
+                positions[i * 3] = 0; positions[i * 3 + 1] = -999; positions[i * 3 + 2] = 0;
+            }
+            const geo = new THREE.BufferGeometry();
+            geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            const mat = new THREE.PointsMaterial({
+                size: 0.18, map: texHandGlow, vertexColors: false,
+                blending: THREE.AdditiveBlending, depthWrite: false,
+                transparent: true, opacity: 0.85,
+                color: new THREE.Color(glowColor),
+                sizeAttenuation: true,
+            });
+            const trail = new THREE.Points(geo, mat);
+            trail.renderOrder = 5;
+            trail.frustumCulled = false;
+            scene.add(trail);
+            return { trail, geo, positions, mat, trailData, maxTrail, glowColor };
+        }
+
+        // ═══════ 5. Star Bridge System ═══════
+        function createBridgeSystem(tex, baseColor) {
+            const maxParticles = 3000;
             const positions = new Float32Array(maxParticles * 3);
             const colors = new Float32Array(maxParticles * 3);
-
-            const [cr, cg, cb] = colorRGB;
-
-            // 预初始化 bridge 粒子数据
             const particles = [];
+            const totalPaths = 22;
             for (let i = 0; i < maxParticles; i++) {
-                const pathIdx = Math.floor(Math.random() * 18);      // 属于哪条贝塞尔
                 particles.push({
-                    pathIdx,
-                    t: Math.random(),                                 // 沿路径位置 [0,1]
-                    flowSpeed: 0.06 + Math.random() * 0.16,          // 流动速度
-                    offsetX: (Math.random() - 0.5) * 0.6,            // 垂直偏移
-                    offsetY: (Math.random() - 0.5) * 0.6,
-                    offsetZ: (Math.random() - 0.5) * 0.6,
-                    size: 0.6 + Math.random() * 2.2,
+                    pathIdx: i % totalPaths,
+                    t: Math.random(),
+                    flowSpeed: 0.05 + Math.random() * 0.18,
+                    offX: (Math.random() - 0.5) * 0.7,
+                    offY: (Math.random() - 0.5) * 0.7,
+                    offZ: (Math.random() - 0.5) * 0.7,
                     phase: Math.random() * Math.PI * 2,
-                    twinkleSpeed: 0.5 + Math.random() * 2.5,
+                    twinkle: 0.4 + Math.random() * 3,
                 });
-                // 初始放置于远不可见位置
-                positions[i * 3] = 0;
-                positions[i * 3 + 1] = -999;
-                positions[i * 3 + 2] = 0;
-                colors[i * 3]     = cr / 255;
-                colors[i * 3 + 1] = cg / 255;
-                colors[i * 3 + 2] = cb / 255;
+                positions[i * 3] = 0; positions[i * 3 + 1] = -999; positions[i * 3 + 2] = 0;
+                colors[i * 3] = baseColor.r; colors[i * 3 + 1] = baseColor.g; colors[i * 3 + 2] = baseColor.b;
             }
-
             const geo = new THREE.BufferGeometry();
             geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
             geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-            geo.setDrawRange(0, 0); // 初始不绘制
-
+            geo.setDrawRange(0, 0);
             const mat = new THREE.PointsMaterial({
-                size: 0.15,
-                map: tex,
-                vertexColors: true,
-                blending: THREE.AdditiveBlending,
-                depthWrite: false,
-                transparent: true,
-                opacity: 0.82,
-                sizeAttenuation: true,
+                size: 0.16, map: tex, vertexColors: true,
+                blending: THREE.AdditiveBlending, depthWrite: false,
+                transparent: true, opacity: 0.85, sizeAttenuation: true,
             });
-
             const bridge = new THREE.Points(geo, mat);
             bridge.renderOrder = 3;
             bridge.frustumCulled = false;
             scene.add(bridge);
-
             return {
-                points: bridge,
-                geo,
-                positions,
-                colors,
-                mat,
-                particles,
-                maxParticles,
-                active: false,
-                handPos3D: new THREE.Vector3(),
-                heartPos3D: new THREE.Vector3(),
-                visibleCount: 0,
+                bridge, geo, positions, colors, mat, particles, maxParticles, totalPaths,
+                active: false, handPos: new THREE.Vector3(), heartPos: new THREE.Vector3(),
             };
         }
 
-        // ═══════════════════════════════════
-        //  创建场景中的所有元素
-        // ═══════════════════════════════════
-        const starfield      = createDeepStarfield();
-        const floatingDust   = createFloatingDust();
-        const leftHeart      = createHeartParticles(-6.0, texPurple, [180, 60, 255]);
-        const rightHeart     = createHeartParticles(6.0, texBlue, [20, 50, 255]);
-        const leftBridge     = createBridgeSystem(texDeepPurple, [90, 18, 155]);
-        const rightBridge    = createBridgeSystem(texDeepBlue, [8, 20, 110]);
+        // ═══════ Create All Scene Elements ═══════
+        const starfield    = createDeepStarfield();
+        const floatingDust = createFloatingDust();
 
-        // 设置桥的心目标位置
-        leftBridge.heartPos3D.set(-6.0, 0, 0);
-        rightBridge.heartPos3D.set(6.0, 0, 0);
+        // Left: purple heart at x=-8, Right: blue heart at x=+8
+        const leftHeart  = createVolumetricHeart(-8.2, texPurple, texHaloPurple, [170, 50, 250]);
+        const rightHeart = createVolumetricHeart(8.2, texBlue, texHaloBlue, [18, 45, 250]);
 
-        // ═══════════════════════════════════
-        //  后处理 — Bloom 辉光
-        // ═══════════════════════════════════
+        const leftTrail  = createHandTrail('#ffb870');
+        const rightTrail = createHandTrail('#ffc880');
+
+        const leftBridge  = createBridgeSystem(texDeepPurple, { r: 90/255, g: 12/255, b: 145/255 });
+        const rightBridge = createBridgeSystem(texDeepBlue,  { r: 6/255,  g: 16/255, b: 95/255 });
+
+        leftBridge.heartPos.set(-8.2, 0, 0);
+        rightBridge.heartPos.set(8.2, 0, 0);
+
+        // ═══════ Post-Processing (Bloom) ═══════
         const composer = new EffectComposer(renderer);
-        const renderPass = new RenderPass(scene, camera);
-        composer.addPass(renderPass);
-
+        composer.addPass(new RenderPass(scene, camera));
         const bloomPass = new UnrealBloomPass(
             new THREE.Vector2(window.innerWidth, window.innerHeight),
-            1.3,   // strength — 辉光强度
-            0.4,   // radius
-            0.2    // threshold
+            1.4, 0.35, 0.15
         );
         composer.addPass(bloomPass);
 
-        // ═══════════════════════════════════
-        //  贝塞尔曲线工具
-        // ═══════════════════════════════════
+        // ═══════ Bézier Helper ═══════
         function quadraticBezier(p0, p1, p2, t) {
             const u = 1 - t;
             return {
@@ -536,108 +500,65 @@
                 z: u * u * p0.z + 2 * u * t * p1.z + t * t * p2.z,
             };
         }
-
-        // 为每条曲线路径生成略不同的控制点
         function getPathMidpoint(handPos, heartPos, pathIdx, totalPaths) {
             const mx = (handPos.x + heartPos.x) / 2;
             const my = (handPos.y + heartPos.y) / 2;
             const mz = (handPos.z + heartPos.z) / 2;
-            // 向上向外拱起，每条路径有微小差异
-            const spreadX = (pathIdx / totalPaths - 0.5) * 2.2;
-            const spreadY = 1.5 + (pathIdx % 3) * 0.9;
-            const spreadZ = (pathIdx % 5 - 2) * 0.8;
-            return { x: mx + spreadX, y: my + spreadY, z: mz + spreadZ };
+            const sx = (pathIdx / totalPaths - 0.5) * 3.0;
+            const sy = 2.0 + (pathIdx % 4) * 1.1;
+            const sz = (pathIdx % 6 - 2.5) * 1.0;
+            return { x: mx + sx, y: my + sy, z: mz + sz };
         }
 
-        // ═══════════════════════════════════
-        //  更新星光桥粒子
-        // ═══════════════════════════════════
-        function updateBridgeSystem(bridge, handPos, time, dt) {
+        // ═══════ Update Functions ═══════
+        function updateBridgeSystem(sys, handPos, time, dt) {
             if (!handPos) {
-                // 无手势：渐隐
-                if (bridge.active) {
-                    bridge.mat.opacity += (0 - bridge.mat.opacity) * 3 * dt;
-                    if (bridge.mat.opacity < 0.02) {
-                        bridge.active = false;
-                        bridge.mat.opacity = 0;
-                        bridge.geo.setDrawRange(0, 0);
-                    }
+                if (sys.active) {
+                    sys.mat.opacity += (0 - sys.mat.opacity) * 3.5 * dt;
+                    if (sys.mat.opacity < 0.015) { sys.active = false; sys.mat.opacity = 0; sys.geo.setDrawRange(0, 0); }
                 }
                 return;
             }
+            sys.active = true;
+            sys.mat.opacity += (0.85 - sys.mat.opacity) * 5 * dt;
 
-            bridge.active = true;
-            bridge.mat.opacity += (0.82 - bridge.mat.opacity) * 4 * dt;
+            sys.handPos.lerp(new THREE.Vector3(handPos.x, handPos.y, handPos.z), 1 - Math.exp(-7 * dt));
 
-            // 更新手位置（平滑）
-            bridge.handPos3D.lerp(
-                new THREE.Vector3(handPos.x, handPos.y, handPos.z),
-                1 - Math.exp(-6 * dt)
-            );
-
-            const hp = bridge.handPos3D;
-            const hrt = bridge.heartPos3D;
-            const totalPaths = 18;
-            const particlesPerPath = Math.floor(bridge.maxParticles / totalPaths);
-            const dist = Math.sqrt((hp.x - hrt.x) ** 2 + (hp.y - hrt.y) ** 2 + (hp.z - hrt.z) ** 2);
-
-            let writeIdx = 0;
-            const posArr = bridge.positions;
-            const colArr = bridge.colors;
-
-            for (let i = 0; i < bridge.maxParticles; i++) {
-                const p = bridge.particles[i];
-                // 流动：粒子沿路径移向爱心
+            const hp = sys.handPos, hrt = sys.heartPos;
+            let wi = 0;
+            for (let i = 0; i < sys.maxParticles; i++) {
+                const p = sys.particles[i];
                 p.t += p.flowSpeed * dt;
                 if (p.t > 1.0) p.t -= 1.0;
-
-                const mid = getPathMidpoint(hp, hrt, p.pathIdx, totalPaths);
+                const mid = getPathMidpoint(hp, hrt, p.pathIdx, sys.totalPaths);
                 const pt = quadraticBezier(hp, mid, hrt, p.t);
-
-                // 闪烁
-                const twinkle = 0.5 + 0.5 * Math.sin(time * p.twinkleSpeed * 6 + p.phase);
-
-                posArr[writeIdx]     = pt.x + p.offsetX;
-                posArr[writeIdx + 1] = pt.y + p.offsetY;
-                posArr[writeIdx + 2] = pt.z + p.offsetZ;
-
-                // 颜色随距离和闪烁变化
-                const brightness = 0.55 + twinkle * 0.45;
-                colArr[writeIdx]     = Math.min(1, colArr[writeIdx] * 0.9 + brightness * 0.1);
-                colArr[writeIdx + 1] = Math.min(1, colArr[writeIdx + 1] * 0.9 + brightness * 0.1);
-                colArr[writeIdx + 2] = Math.min(1, colArr[writeIdx + 2] * 0.9 + brightness * 0.1);
-
-                writeIdx += 3;
+                const tw = 0.5 + 0.5 * Math.sin(time * p.twinkle * 7 + p.phase);
+                sys.positions[wi]     = pt.x + p.offX;
+                sys.positions[wi + 1] = pt.y + p.offY;
+                sys.positions[wi + 2] = pt.z + p.offZ;
+                const bright = 0.5 + tw * 0.5;
+                sys.colors[wi]     = Math.min(1, sys.colors[wi] * 0.88 + bright * 0.12);
+                sys.colors[wi + 1] = Math.min(1, sys.colors[wi + 1] * 0.88 + bright * 0.12);
+                sys.colors[wi + 2] = Math.min(1, sys.colors[wi + 2] * 0.88 + bright * 0.12);
+                wi += 3;
             }
-
-            bridge.visibleCount = bridge.maxParticles;
-            bridge.geo.setDrawRange(0, bridge.maxParticles);
-            bridge.geo.attributes.position.needsUpdate = true;
-            bridge.geo.attributes.color.needsUpdate = true;
+            sys.geo.setDrawRange(0, sys.maxParticles);
+            sys.geo.attributes.position.needsUpdate = true;
+            sys.geo.attributes.color.needsUpdate = true;
         }
 
-        // ═══════════════════════════════════
-        //  更新爱心（旋转 + 磁力扰动）
-        // ═══════════════════════════════════
         function updateHeart(heart, handPos, time, dt) {
-            const posArr = heart.positions;
-            const baseArr = heart.basePositions;
-
-            // 整体缓慢旋转（通过修改基础位置模拟 Y 轴自转）
-            const rotSpeed = 0.25; // 弧度/秒
+            const posArr  = heart.positions;
+            const baseArr = heart.basePos;
+            const rotSpeed = 0.18;
             const angle = time * rotSpeed;
-            const cosA = Math.cos(angle);
-            const sinA = Math.sin(angle);
-
-            // 呼吸效果
-            const breathe = 1 + Math.sin(time * 0.7) * 0.03;
+            const cosA = Math.cos(angle), sinA = Math.sin(angle);
+            const breathe = 1 + Math.sin(time * 0.55) * 0.04;
 
             for (let i = 0; i < heart.count; i++) {
                 let bx = baseArr[i * 3];
                 let by = baseArr[i * 3 + 1];
                 let bz = baseArr[i * 3 + 2];
-
-                // 绕自身中心 (heart.centerX, 0, 0) 的 Y 轴旋转
                 const cx = heart.centerX;
                 const dx = bx - cx;
                 const rx = dx * cosA + bz * sinA;
@@ -646,238 +567,188 @@
                 by = by * breathe;
                 bz = rz * breathe;
 
-                // 磁力扰动：手靠近则粒子微移
+                // Magnetic perturbation when hand is close
                 if (handPos) {
-                    const hx = handPos.x, hy = handPos.y, hz = handPos.z;
-                    const pdx = bx - hx;
-                    const pdy = by - hy;
-                    const pdz = bz - hz;
-                    const distToHand = Math.sqrt(pdx * pdx + pdy * pdy + pdz * pdz);
-                    const attractRadius = 5.5;
-                    if (distToHand < attractRadius) {
-                        const strength = (1 - distToHand / attractRadius) * 0.7;
-                        const nx = pdx / (distToHand + 0.001);
-                        const ny = pdy / (distToHand + 0.001);
-                        const nz = pdz / (distToHand + 0.001);
-                        bx += nx * strength;
-                        by += ny * strength;
-                        bz += nz * strength;
+                    const pdx = bx - handPos.x, pdy = by - handPos.y, pdz = bz - handPos.z;
+                    const dist = Math.sqrt(pdx * pdx + pdy * pdy + pdz * pdz);
+                    const radius = 8.0;
+                    if (dist < radius) {
+                        const strength = (1 - dist / radius) * 1.5;
+                        const nx = pdx / (dist + 0.001), ny = pdy / (dist + 0.001), nz = pdz / (dist + 0.001);
+                        bx += nx * strength; by += ny * strength; bz += nz * strength;
                     }
                 }
-
-                posArr[i * 3]     = bx;
-                posArr[i * 3 + 1] = by;
-                posArr[i * 3 + 2] = bz;
+                posArr[i * 3] = bx; posArr[i * 3 + 1] = by; posArr[i * 3 + 2] = bz;
             }
             heart.geo.attributes.position.needsUpdate = true;
         }
 
-        // ═══════════════════════════════════
-        //  更新漂浮尘埃
-        // ═══════════════════════════════════
-        function updateFloatingDust(dustSystem, time) {
-            const posArr = dustSystem.positions;
-            const data = dustSystem.data;
-            for (let i = 0; i < data.length; i++) {
-                const d = data[i];
-                posArr[i * 3]     = d.baseX + Math.sin(time * d.speedX * 2 + d.phase) * d.amp;
-                posArr[i * 3 + 1] = d.baseY + Math.cos(time * d.speedY * 2 + d.phase) * d.amp;
-                posArr[i * 3 + 2] = d.baseZ + Math.sin(time * d.speedZ * 2 + d.phase + 1) * d.amp * 0.7;
+        function updateTrail(trailSys, handPos, dt) {
+            const { trailData, positions, maxTrail, geo, mat } = trailSys;
+            if (handPos) {
+                trailData.unshift({ age: 0, x: handPos.x, y: handPos.y, z: handPos.z });
+                if (trailData.length > maxTrail) trailData.length = maxTrail;
+                mat.opacity = Math.min(0.85, mat.opacity + 4 * dt);
             }
-            dustSystem.geo.attributes.position.needsUpdate = true;
+            // Age existing
+            for (const d of trailData) d.age += dt;
+            // Remove old
+            while (trailData.length > 0 && trailData[trailData.length - 1].age > 1.8) trailData.pop();
+            // Fade if no hand
+            if (!handPos && trailData.length === 0) {
+                mat.opacity += (0 - mat.opacity) * 3 * dt;
+            }
+            // Write positions
+            for (let i = 0; i < maxTrail; i++) {
+                if (i < trailData.length) {
+                    const d = trailData[i];
+                    positions[i * 3] = d.x; positions[i * 3 + 1] = d.y; positions[i * 3 + 2] = d.z;
+                } else {
+                    positions[i * 3] = 0; positions[i * 3 + 1] = -999; positions[i * 3 + 2] = 0;
+                }
+            }
+            geo.setDrawRange(0, Math.min(maxTrail, trailData.length));
+            geo.attributes.position.needsUpdate = true;
         }
 
-        // ═══════════════════════════════════
-        //  手部世界坐标映射
-        // ═══════════════════════════════════
+        function updateFloatingDust(sys, time) {
+            const posArr = sys.positions;
+            for (let i = 0; i < sys.dataArr.length; i++) {
+                const d = sys.dataArr[i];
+                posArr[i * 3]     = d.bx + Math.sin(time * d.sx * 2 + d.ph) * d.amp;
+                posArr[i * 3 + 1] = d.by + Math.cos(time * d.sy * 2 + d.ph) * d.amp;
+                posArr[i * 3 + 2] = d.bz + Math.sin(time * d.sz * 2 + d.ph + 1) * d.amp * 0.7;
+            }
+            sys.geo.attributes.position.needsUpdate = true;
+        }
+
+        // ═══════ Hand World Mapping ═══════
         function mapHandToWorld(landmarks) {
-            // 取手腕(0) + 中指 MCP(9) 的中点作为掌心
-            const wrist = landmarks[0];
+            const wrist  = landmarks[0];
             const midMcp = landmarks[9];
-            const palmX = (wrist.x + midMcp.x) / 2;
-            const palmY = (wrist.y + midMcp.y) / 2;
-
-            // 映射到 3D 世界（镜像 x）
-            const worldX = (1 - palmX) * 20 - 10;    // [-10, 10]
-            const worldY = (1 - palmY) * 12 - 3;     // [-3, 9]
-            const worldZ = 4.5;                        // 在相机与爱心之间
-
-            return { x: worldX, y: worldY, z: worldZ };
+            const px = (wrist.x + midMcp.x) / 2;
+            const py = (wrist.y + midMcp.y) / 2;
+            const wx = (1 - px) * 22 - 11;
+            const wy = (1 - py) * 13 - 2.5;
+            const wz = 5.5;
+            return { x: wx, y: wy, z: wz };
         }
 
-        // ═══════════════════════════════════
-        //  MediaPipe Hands 初始化
-        // ═══════════════════════════════════
+        // ═══════ MediaPipe Hands ═══════
         let handsInstance = null;
-
         function initMediaPipe() {
-            if (typeof Hands === 'undefined') {
-                console.warn('MediaPipe Hands 未加载');
-                return;
-            }
-
+            if (typeof Hands === 'undefined') { console.warn('MediaPipe Hands not loaded'); return; }
             handsInstance = new Hands({
-                locateFile: (file) =>
-                    `https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/${file}`
+                locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/${file}`
             });
-
             handsInstance.setOptions({
-                maxNumHands: 2,
-                modelComplexity: 1,
-                minDetectionConfidence: 0.7,
-                minTrackingConfidence: 0.5,
+                maxNumHands: 2, modelComplexity: 1,
+                minDetectionConfidence: 0.65, minTrackingConfidence: 0.45,
             });
-
             handsInstance.onResults((results) => {
-                leftHandRaw  = null;
-                rightHandRaw = null;
-
+                leftHandRaw = null; rightHandRaw = null;
                 if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
                     for (let i = 0; i < results.multiHandLandmarks.length; i++) {
-                        const landmarks = results.multiHandLandmarks[i];
-                        const handedness = results.multiHandedness[i];
-                        const worldPos = mapHandToWorld(landmarks);
-
-                        if (handedness.label === 'Left') {
-                            leftHandRaw = worldPos;
-                        } else {
-                            rightHandRaw = worldPos;
-                        }
+                        const wp = mapHandToWorld(results.multiHandLandmarks[i]);
+                        if (results.multiHandedness[i].label === 'Left') leftHandRaw = wp;
+                        else rightHandRaw = wp;
                     }
                 }
             });
-
             mediaPipeReady = true;
-            console.log('🌌 MediaPipe Hands 就绪');
         }
 
         async function startCamera() {
             if (cameraActive) return;
-            if (!mediaPipeReady) {
-                initMediaPipe();
-                if (!handsInstance) return;
-            }
-
+            if (!mediaPipeReady) { initMediaPipe(); if (!handsInstance) return; }
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({
                     video: { width: 640, height: 480, facingMode: 'user' }
                 });
                 webcamVideo.srcObject = stream;
                 await webcamVideo.play();
-
-                const cameraUtils = new Camera(webcamVideo, {
-                    onFrame: async () => {
-                        if (handsInstance) {
-                            await handsInstance.send({ image: webcamVideo });
-                        }
-                    },
-                    width: 640,
-                    height: 480,
+                const camUtil = new Camera(webcamVideo, {
+                    onFrame: async () => { if (handsInstance) await handsInstance.send({ image: webcamVideo }); },
+                    width: 640, height: 480,
                 });
-                await cameraUtils.start();
+                await camUtil.start();
                 cameraActive = true;
                 cameraHint.classList.add('hidden');
-                statusText.textContent = '星光桥已开启 · 伸出双手触碰星辰';
+                statusText.textContent = 'Star Bridge active — reach out with both hands';
                 statusText.style.color = 'rgba(180,220,255,0.6)';
-                console.log('📷 摄像头已启动');
             } catch (err) {
-                console.warn('摄像头权限被拒绝:', err.message);
-                statusText.textContent = '摄像头未开启 · 仅欣赏星海';
-                statusText.style.color = 'rgba(255,255,255,0.3)';
-                cameraHint.textContent = '⟳ 重试开启摄像头';
+                console.warn('Camera denied:', err.message);
+                statusText.textContent = 'Camera not available — enjoying the cosmos';
+                statusText.style.color = 'rgba(255,255,255,0.25)';
+                cameraHint.textContent = '⟳ Retry Camera';
                 cameraHint.classList.remove('hidden');
             }
         }
-
-        // ── 摄像头按钮事件 ──
         cameraHint.addEventListener('click', startCamera);
 
-        // ═══════════════════════════════════
-        //  动画主循环
-        // ═══════════════════════════════════
+        // ═══════ Animation Loop ═══════
         const clock = new THREE.Clock();
-        let lastHandCheckTime = 0;
+        let lastUIUpdate = 0;
 
-        function animate(timestamp) {
+        function animate(ts) {
             requestAnimationFrame(animate);
-
             const dt = Math.min(clock.getDelta(), 0.1);
-            const time = timestamp * 0.001;
+            const time = ts * 0.001;
 
-            // ── 更新手势世界坐标（平滑） ──
+            // Smooth hand positions
             if (leftHandRaw) {
                 if (!leftHandWorld) leftHandWorld = { ...leftHandRaw };
                 leftHandWorld.x += (leftHandRaw.x - leftHandWorld.x) * HAND_SMOOTH;
                 leftHandWorld.y += (leftHandRaw.y - leftHandWorld.y) * HAND_SMOOTH;
                 leftHandWorld.z += (leftHandRaw.z - leftHandWorld.z) * HAND_SMOOTH;
-            } else {
-                leftHandWorld = null;
-            }
+            } else leftHandWorld = null;
             if (rightHandRaw) {
                 if (!rightHandWorld) rightHandWorld = { ...rightHandRaw };
                 rightHandWorld.x += (rightHandRaw.x - rightHandWorld.x) * HAND_SMOOTH;
                 rightHandWorld.y += (rightHandRaw.y - rightHandWorld.y) * HAND_SMOOTH;
                 rightHandWorld.z += (rightHandRaw.z - rightHandWorld.z) * HAND_SMOOTH;
-            } else {
-                rightHandWorld = null;
-            }
+            } else rightHandWorld = null;
 
-            // ── UI 状态更新 ──
-            if (timestamp - lastHandCheckTime > 300) {
-                lastHandCheckTime = timestamp;
-                if (leftHandWorld) {
-                    statusDotLeft.className = 'status-dot active';
-                } else {
-                    statusDotLeft.className = 'status-dot';
-                }
-                if (rightHandWorld) {
-                    statusDotRight.className = 'status-dot active';
-                } else {
-                    statusDotRight.className = 'status-dot';
-                }
+            // UI
+            if (ts - lastUIUpdate > 350) {
+                lastUIUpdate = ts;
+                statusDotLeft.className  = leftHandWorld  ? 'status-dot active' : 'status-dot';
+                statusDotRight.className = rightHandWorld ? 'status-dot active' : 'status-dot';
                 if (cameraActive && !leftHandWorld && !rightHandWorld) {
-                    statusText.textContent = '伸出双手 · 触碰星辰';
-                    statusText.style.color = 'rgba(255,255,255,0.35)';
+                    statusText.textContent = 'Reach out — touch the stars';
+                    statusText.style.color = 'rgba(255,255,255,0.3)';
                 } else if (cameraActive && (leftHandWorld || rightHandWorld)) {
-                    const hands = [];
-                    if (leftHandWorld) hands.push('左手');
-                    if (rightHandWorld) hands.push('右手');
-                    statusText.textContent = `${hands.join('·')}已连接星桥`;
+                    const h = [];
+                    if (leftHandWorld) h.push('Left Hand');
+                    if (rightHandWorld) h.push('Right Hand');
+                    statusText.textContent = h.join(' · ') + ' — Star Bridge connected';
                     statusText.style.color = 'rgba(180,220,255,0.6)';
                 }
             }
 
-            // ── 更新爱心 ──
+            // Update
             updateHeart(leftHeart, leftHandWorld, time, dt);
             updateHeart(rightHeart, rightHandWorld, time, dt);
-
-            // ── 更新星光桥 ──
             updateBridgeSystem(leftBridge, leftHandWorld, time, dt);
             updateBridgeSystem(rightBridge, rightHandWorld, time, dt);
-
-            // ── 更新漂浮尘埃 ──
+            updateTrail(leftTrail, leftHandWorld, dt);
+            updateTrail(rightTrail, rightHandWorld, dt);
             updateFloatingDust(floatingDust, time);
 
-            // ── 星空缓慢旋转 ──
-            starfield.rotation.y += dt * 0.03;
-            starfield.rotation.x += dt * 0.008;
+            starfield.rotation.y += dt * 0.025;
+            starfield.rotation.x += dt * 0.006;
 
-            // ── 鼠标视差 ──
-            mouseCurrent.x += (mouseTarget.x - mouseCurrent.x) * 2.5 * dt;
-            mouseCurrent.y += (mouseTarget.y - mouseCurrent.y) * 2.5 * dt;
-            const lookX = mouseCurrent.x * 1.8;
-            const lookY = mouseCurrent.y * 1.2;
-            camera.position.x += (lookX - camera.position.x) * 1.5 * dt;
-            camera.position.y += (-0.3 + lookY - camera.position.y) * 1.5 * dt;
-            camera.lookAt(0, -0.5, 0);
+            // Mouse parallax
+            mouseCurrent.x += (mouseTarget.x - mouseCurrent.x) * 2 * dt;
+            mouseCurrent.y += (mouseTarget.y - mouseCurrent.y) * 2 * dt;
+            camera.position.x += (mouseCurrent.x * 2.2 - camera.position.x) * 1.2 * dt;
+            camera.position.y += (0.5 + mouseCurrent.y * 1.5 - camera.position.y) * 1.2 * dt;
+            camera.lookAt(0, 0, 0);
 
-            // ── 渲染 ──
             composer.render();
         }
 
-        // ═══════════════════════════════════
-        //  响应式处理
-        // ═══════════════════════════════════
+        // ═══════ Resize ═══════
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
@@ -885,28 +756,18 @@
             composer.setSize(window.innerWidth, window.innerHeight);
         });
 
-        // ═══════════════════════════════════
-        //  键盘快捷操作
-        // ═══════════════════════════════════
-        window.addEventListener('keydown', (e) => {
-            if (e.key === 'c' || e.key === 'C') {
-                startCamera();
-            }
-        });
+        // Keyboard shortcut
+        window.addEventListener('keydown', (e) => { if (e.key === 'c' || e.key === 'C') startCamera(); });
 
-        // ═══════════════════════════════════
-        //  启动
-        // ═══════════════════════════════════
+        // ═══════ Launch ═══════
         initMediaPipe();
         requestAnimationFrame(animate);
 
-        // 自动尝试启动摄像头（需要用户交互才能触发 getUserMedia）
-        // 所以用 cameraHint 按钮引导点击
-        console.log('💜💙 触碰星辰 · 粒子星海已就绪');
-        console.log('   🖱 移动鼠标感受3D视差');
-        console.log('   📷 点击"开启星桥感应"启动手势交互');
-        console.log('   ⌨ 按 C 键亦可开启摄像头');
-        console.log('   ✨ 左侧紫色爱心 · 右侧深蓝爱心');
+        console.log('%c💜💙 Touch the Stars — Particle Cosmos %cready',
+            'font-size:16px','font-size:12px');
+        console.log('  🖱  Move mouse for 3D parallax');
+        console.log('  📷  Click "Enable Star Bridge" or press C for hand tracking');
+        console.log('  💜  Left = Purple Heart   💙  Right = Deep Blue Heart');
     </script>
 </body>
 </html>
